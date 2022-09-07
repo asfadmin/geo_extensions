@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple
+from typing import List, NamedTuple, Tuple
 
 from satlib import FlightDirection, LookDirection
 
@@ -42,3 +42,14 @@ class CornerCoords(NamedTuple):
         near_start, far_start = start
         near_end, far_end = end
         return cls(near_start, near_end, far_start, far_end)
+
+    def to_bbox(self) -> List[Tuple[float, float]]:
+        """Convert to a correctly wound and closed list of points."""
+
+        return [
+            self.near_start,
+            self.far_start,
+            self.far_end,
+            self.near_end,
+            self.near_start
+        ]

@@ -56,3 +56,9 @@ def test_from_ub_descending_left():
     )
 
     assert coords == CornerCoords(upper_left, bottom_left, upper_right, bottom_right)
+
+
+def test_to_bbox():
+    coords = CornerCoords((1, 2), (3, 4), (5, 6), (7, 8))
+
+    assert coords.to_bbox() == [(1, 2), (5, 6), (7, 8), (3, 4), (1, 2)]
