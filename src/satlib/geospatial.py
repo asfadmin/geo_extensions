@@ -37,8 +37,6 @@ def split_bbox_on_idl(bbox: Bbox):
     # Shift into 0-360 range
     shifted_polygon = Polygon([((360.0 + lon) % 360, lat) for lat, lon in bbox])
     if not shifted_polygon.intersects(ANTIMERIDIAN):
-        if _has_closure_point(bbox):
-            bbox = bbox[:-1]
         return [bbox]
     merged = linemerge([shifted_polygon.boundary, ANTIMERIDIAN])
     borders = unary_union(merged)
