@@ -9,7 +9,7 @@ def test_split_bbox_on_idl_noop():
         (70, 160),
         (60, 160)
     ]
-    assert split_bbox_on_idl(bbox) == [bbox[:4]]
+    assert split_bbox_on_idl(bbox) == [bbox]
 
 
 def test_split_bbox_on_idl_centered():
