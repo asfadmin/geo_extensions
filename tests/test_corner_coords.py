@@ -10,7 +10,7 @@ def test_from_ub_ascending_right():
         bottom_left,
         bottom_right,
         FlightDirection.ascending,
-        LookDirection.right
+        LookDirection.right,
     )
 
     assert coords == CornerCoords(bottom_left, upper_left, bottom_right, upper_right)
@@ -24,7 +24,7 @@ def test_from_ub_ascending_left():
         bottom_left,
         bottom_right,
         FlightDirection.ascending,
-        LookDirection.left
+        LookDirection.left,
     )
 
     assert coords == CornerCoords(bottom_right, upper_right, bottom_left, upper_left)
@@ -38,7 +38,7 @@ def test_from_ub_descending_right():
         bottom_left,
         bottom_right,
         FlightDirection.descending,
-        LookDirection.right
+        LookDirection.right,
     )
 
     assert coords == CornerCoords(upper_right, bottom_right, upper_left, bottom_left)
@@ -52,7 +52,7 @@ def test_from_ub_descending_left():
         bottom_left,
         bottom_right,
         FlightDirection.descending,
-        LookDirection.left
+        LookDirection.left,
     )
 
     assert coords == CornerCoords(upper_left, bottom_left, upper_right, bottom_right)

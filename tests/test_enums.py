@@ -5,11 +5,17 @@ from satlib import FlightDirection, LookDirection
 def test_flight_direction_from_str():
     assert FlightDirection.from_str("A") == FlightDirection.ascending
     assert FlightDirection.from_str("ASC") == FlightDirection.ascending
-    assert FlightDirection.from_str("ascENDing", case_sensitive=False) == FlightDirection.ascending
+    assert (
+        FlightDirection.from_str("ascENDing", case_sensitive=False)
+        == FlightDirection.ascending
+    )
 
     assert FlightDirection.from_str("D") == FlightDirection.descending
     assert FlightDirection.from_str("DES") == FlightDirection.descending
-    assert FlightDirection.from_str("DEScendING", case_sensitive=False) == FlightDirection.descending
+    assert (
+        FlightDirection.from_str("DEScendING", case_sensitive=False)
+        == FlightDirection.descending
+    )
 
 
 def test_flight_direction_from_str_error():

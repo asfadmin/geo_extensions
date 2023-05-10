@@ -21,7 +21,7 @@ class CornerCoords(NamedTuple):
         bottom_left: Tuple[float, float],
         bottom_right: Tuple[float, float],
         flight_direction: FlightDirection,
-        look_direction: LookDirection
+        look_direction: LookDirection,
     ):
         """Create corner coords from upper/bottom."""
 
@@ -51,5 +51,5 @@ class CornerCoords(NamedTuple):
             self.far_start,
             self.far_end,
             self.near_end,
-            self.near_start
+            self.near_start,
         ]

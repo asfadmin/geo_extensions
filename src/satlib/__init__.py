@@ -12,9 +12,7 @@ class FromStrMixin:
             if variant_value.startswith(value):
                 return variant
 
-        raise ValueError(
-            f"Cannot determine {cls.__name__} from string {value!r}"
-        )
+        raise ValueError(f"Cannot determine {cls.__name__} from string {value!r}")
 
 
 class FlightDirection(FromStrMixin, Enum):
