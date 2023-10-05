@@ -27,12 +27,21 @@ def _has_closure_point(bbox: Bbox) -> bool:
     return bbox[0] == bbox[-1]
 
 
-def split_bbox_on_idl(bbox: Bbox, include_closure_points: bool = False):
+def split_bbox_on_idl(
+    bbox: Bbox,
+    include_closure_points: bool = False,
+    ccw: bool = False
+) -> List[Bbox]:
     """Perform adjustment when the bounding box crosses the 180 longitude line.
 
     CMR requires the bounding box to be split into two separate bounding bboxes
     to avoid the polygon being interpreted as wrapping the long way around the
     Earth.
+
+    :param bbox: the bounding box to split if necessary
+    :param include_closure_points: whether or not to include the closure point
+        in the returned bounding boxes
+    :param ccw: whether or not to use counter clockwise winding order
     """
     # Shift into 0-360 range
     shifted_polygon = Polygon([((360.0 + lon) % 360, lat) for lat, lon in bbox])
@@ -47,6 +56,8 @@ def split_bbox_on_idl(bbox: Bbox, include_closure_points: bool = False):
     for p in polygons:
         new_bbox = [[lat, lon] for lon, lat in p.boundary.coords]
         max_lon = max(lon for lat, lon in new_bbox)
+        if ccw:
+            new_bbox = new_bbox[::-1]
         new_bbox = [[lat, _adjust_lon(lon, max_lon)] for lat, lon in new_bbox]
 
         if _has_closure_point(bbox):

@@ -24,6 +24,15 @@ def test_split_bbox_on_idl_centered_closure_points():
     ]
 
 
+def test_split_bbox_on_idl_centered_closure_points_ccw():
+    """Polygon is centered on IDL and we return closure points in ccw order"""
+    bbox = [(60, 170), (60, -170), (70, -170), (70, 170), (60, 170)]
+    assert split_bbox_on_idl(bbox, include_closure_points=True, ccw=True) == [
+        [[70.0, 179.999], [70.0, 170.0], [60.0, 170.0], [60.0, 179.999], [70.0, 179.999]],
+        [[60.0, -179.999], [60.0, -170.0], [70.0, -170.0], [70.0, -179.999], [60.0, -179.999]],
+    ]
+
+
 def test_split_bbox_on_idl_west():
     """Polygon is mostly west of the IDL"""
     bbox = [(60, 170), (60, -179), (70, -179), (70, 170), (60, 170)]
