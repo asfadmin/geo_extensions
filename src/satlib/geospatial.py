@@ -27,7 +27,7 @@ def _has_closure_point(bbox: Bbox) -> bool:
     return bbox[0] == bbox[-1]
 
 
-def split_bbox_on_idl(bbox: Bbox):
+def split_bbox_on_idl(bbox: Bbox, include_closure_points: bool = False):
     """Perform adjustment when the bounding box crosses the 180 longitude line.
 
     CMR requires the bounding box to be split into two separate bounding bboxes
@@ -50,8 +50,13 @@ def split_bbox_on_idl(bbox: Bbox):
         new_bbox = [[lat, _adjust_lon(lon, max_lon)] for lat, lon in new_bbox]
 
         if _has_closure_point(bbox):
-            # CMR does not want closure point
-            new_bboxes.append(new_bbox[:-1])
+            # UMM-G requires closure points to be present, however our old code
+            # had a comment saying that CMR did not want the closure point.
+            # Maybe it depends on the format you use to post to CMR?
+            if include_closure_points:
+                new_bboxes.append(new_bbox)
+            else:
+                new_bboxes.append(new_bbox[:-1])
         else:
             logging.debug("IDL crossing splinter is being ignored")
             # TODO(reweeden): How does this happen? Add a test case
