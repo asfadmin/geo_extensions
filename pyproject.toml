@@ -8,5 +8,8 @@ version = "0.0.1"
 readme = "README.md"
 requires-python = ">=3.8"
 
+[project.optional-dependencies]
+shapely = ["shapely>=1.8.0"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
