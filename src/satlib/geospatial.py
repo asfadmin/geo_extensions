@@ -70,7 +70,18 @@ def split_polygon_on_idl(polygon: Polygon) -> List[Polygon]:
     """
 
     shifted_polygon = _shift_polygon(polygon)
+    # TODO(reweeden): This check is theoretically redundant, however, since the
+    # first check relies on the polygon being ordered correctly it may be
+    # possible that some polygons appear to cross the IDL when using the point
+    # ordering method, but don't actually cross when doing the spatial check.
+    #
+    # Since this check has been in the code the longest, it is included here to
+    # avoid accidentally introducing a new bug. However, once we are confident
+    # in the polygon order being passed to this function, it should be removed.
     if not shifted_polygon.intersects(ANTIMERIDIAN):
+        return [polygon]
+
+    if not _polygon_crosses_antimeridian(polygon):
         return [polygon]
 
     new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
@@ -79,6 +90,16 @@ def split_polygon_on_idl(polygon: Polygon) -> List[Polygon]:
         _shift_polygon_back(polygon)
         for polygon in new_polygons
     ]
+
+
+def _polygon_crosses_antimeridian(polygon: Polygon) -> bool:
+    """Checks if the longitude coordinates 'wrap around' the 180/-180 line.
+
+    This code assumes that the polygon is oriented in counter-clockwise order.
+    """
+
+    # Polygons crossing the antimeridian will appear to be mis-ordered
+    return not polygon.exterior.is_ccw
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
