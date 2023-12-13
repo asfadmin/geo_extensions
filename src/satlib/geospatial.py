@@ -1,7 +1,47 @@
-import logging
+"""Geospatial helpers to prepare spatial extents for submission to CMR.
+
+CMR has the following constraints on spatial extents:
+    - The implemented Geodetic model uses the great circle distance to connect
+        two vertices for constructing a polygon area or line. If there is not
+        enough density (that is, the number of points) for a set of vertices,
+        then the line or the polygon area might be misinterpreted or the
+        metadata might be considered invalid.
+    - Any single spatial area may cross the International Date Line and/or Poles
+    - Any single spatial area may not cover more than one half of the earth.
+
+Taken from: https://wiki.earthdata.nasa.gov/pages/viewpage.action?spaceKey=CMR&title=CMR+Data+Partner+User+Guide
+
+There are also additional constraints that depend on the data format being used.
+For UMM-G polygons must
+    - Be counter clockwise ordered
+    - Include closure points
+
+A table describing the differences between data format requirements can be found here:
+https://wiki.earthdata.nasa.gov/display/CMR/Polygon+Support+in+CMR+Search+and+Ingest+Interfaces
+
+There are several challenges with representing polygons on a spherical surface,
+the primary being that since all straight lines will 'wrap around' the surface,
+it becomes impossible to unabmiguously define a polygon using only an ordered
+set of points. This is the primary reason for the CMR requirements, as those
+additional constraints make it possible to determine exactly which area is
+meant by a set of points. Unfortunately, the polygons that we get from the data
+provider won't necessarily meet those same requirements and we must use mission
+specific knowledge to convert them to an unambiguous set of polygons to be used
+by CMR.
+
+This module aims to assist in that conversion to unambiguous polygons using the
+CMR additional requirements. Any polygons passed in as arguments or returned
+from functions in this module are assumed to be in counter clockwise order as
+seen in the spherical space. This makes detecting whether a polygon crosses the
+antimeridian (wraps around the edge of the flat coordinate system) very easy
+even in the general case, because such a polygon will appear to be clockwise
+ordered in the shapely flat space.
+"""
+
 from typing import List, Tuple
 
 from shapely.geometry import LineString, Polygon
+from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, polygonize, unary_union
 
 Point = Tuple[float, float]
@@ -10,80 +50,22 @@ Bbox = List[Point]
 ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 
 
-def bbox_to_polygon(bbox: Bbox) -> Polygon:
-    return Polygon([(lon, lat) for lat, lon in bbox])
-
-
-def polygon_to_bbox(polygon: Polygon) -> Bbox:
-    return [(lat, lon) for lon, lat in polygon.boundary.coords]
-
-
-def split_bbox_on_idl(
-    bbox: Bbox,
-    include_closure_points: bool = False,
-    ccw: bool = False
-) -> List[Bbox]:
-    """Perform adjustment when the bounding box crosses the 180 longitude line.
-
-    CMR requires the bounding box to be split into two separate bounding bboxes
-    to avoid the polygon being interpreted as wrapping the long way around the
-    Earth.
-
-    DEPRECATED: Use split_polygon_on_idl instead.
-
-    :param bbox: the bounding box to split if necessary
-    :param include_closure_points: whether or not to include the closure point
-        in the returned bounding boxes
-    :param ccw: whether or not to use counter clockwise winding order
-    """
-    new_polygons = split_polygon_on_idl(polygon=bbox_to_polygon(bbox))
-    new_bboxes = []
-    # Shift back to -180-180 range
-    for new_polygon in new_polygons:
-        new_bbox = polygon_to_bbox(new_polygon)
-        if ccw:
-            new_bbox = new_bbox[::-1]
-
-        if _has_closure_point(bbox):
-            # UMM-G requires closure points to be present, however our old code
-            # had a comment saying that CMR did not want the closure point.
-            # Maybe it depends on the format you use to post to CMR?
-            if include_closure_points:
-                new_bboxes.append(new_bbox)
-            else:
-                new_bboxes.append(new_bbox[:-1])
-        else:
-            logging.debug("IDL crossing splinter is being ignored")
-            # TODO(reweeden): How does this happen? Add a test case
-            raise RuntimeError("Test me!", bbox)
-
-    return new_bboxes
-
-
-def split_polygon_on_idl(polygon: Polygon) -> List[Polygon]:
-    """Perform adjustment when the polygon crosses the 180 longitude line.
+def split_polygon_on_antimeridian(polygon: Polygon) -> List[Polygon]:
+    """Perform adjustment when the polygon crosses the antimeridian.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
     being interpreted as wrapping the long way around the Earth.
 
-    :param polygon: the polygon to split if necessary
+    :param polygon: the polygon to split if necessary. Polygon must fulfill the
+        following conditions:
+            - Points must be in counter clockwise winding order
+            - Polygon must not cover more than half of the earth
     """
 
+    if not polygon_crosses_antimeridian(polygon):
+        return [polygon]
+
     shifted_polygon = _shift_polygon(polygon)
-    # TODO(reweeden): This check is theoretically redundant, however, since the
-    # first check relies on the polygon being ordered correctly it may be
-    # possible that some polygons appear to cross the IDL when using the point
-    # ordering method, but don't actually cross when doing the spatial check.
-    #
-    # Since this check has been in the code the longest, it is included here to
-    # avoid accidentally introducing a new bug. However, once we are confident
-    # in the polygon order being passed to this function, it should be removed.
-    if not shifted_polygon.intersects(ANTIMERIDIAN):
-        return [polygon]
-
-    if not _polygon_crosses_antimeridian(polygon):
-        return [polygon]
-
     new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
 
     return [
@@ -92,14 +74,34 @@ def split_polygon_on_idl(polygon: Polygon) -> List[Polygon]:
     ]
 
 
-def _polygon_crosses_antimeridian(polygon: Polygon) -> bool:
+def polygon_crosses_antimeridian(polygon: Polygon) -> bool:
     """Checks if the longitude coordinates 'wrap around' the 180/-180 line.
 
-    This code assumes that the polygon is oriented in counter-clockwise order.
+    The polygon must be oriented in counter-clockwise order.
     """
 
     # Polygons crossing the antimeridian will appear to be mis-ordered
     return not polygon.exterior.is_ccw
+
+
+def fixed_size_polygon_crosses_antimeridian(
+    polygon: Polygon,
+    min_lon_extent: float,
+) -> bool:
+    """Checks if the longitude coordinates 'wrap around' the 180/-180 line
+    based on a heuristic that assumes the polygon is of a certain size.
+
+    :param polygon: the polygon check.
+    :param min_lon_extent: the lower bound for the distance between the
+        longitude values of the bounding box enclosing the entire polygon.
+        Must be between (0, 180) exclusive.
+    """
+    assert 0 < min_lon_extent < 180
+
+    min_lon, _, max_lon, _ = polygon.bounds
+    dist_from_180 = 180 - min_lon_extent
+
+    return max_lon > dist_from_180 or min_lon < -dist_from_180
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
@@ -135,12 +137,6 @@ def _adjust_lon(lon: float, max_lon: float) -> float:
     return lon
 
 
-def _has_closure_point(bbox: Bbox) -> bool:
-    assert len(bbox) >= 2
-
-    return bbox[0] == bbox[-1]
-
-
 def _split_polygon(
     polygon: Polygon,
     line: LineString
@@ -149,4 +145,28 @@ def _split_polygon(
 
     merged = linemerge([polygon.boundary, line])
     borders = unary_union(merged)
-    return polygonize(borders)
+
+    return [
+        orient(poly)
+        for poly in polygonize(borders)
+        if not _ignore_polygon(poly)
+    ]
+
+
+def _ignore_polygon(polygon: Polygon) -> bool:
+    min_lon, _, max_lon, _ = polygon.bounds
+    # We want to ignore any tiny slivers of polygons that might barely cross
+    # the antimeridian. For CMR, the polygons don't need to be that precice
+    # and we're rounding to 179.999 anyway. So realistically we don't want any
+    # polygons that are contained within the +/-0.001 degrees around the
+    # antimeridian. Due to possible floating point errors in the distance
+    # calculation, we are a little generous in this trimming and set our
+    # threshold to 0.0015 instead of just 0.0015
+    #
+    # For instance:
+    # >>> 180.001-180
+    # 0.0010000000000047748
+    # >>> 180.001-180 > .001
+    # True
+
+    return not (max_lon - min_lon > 0.0015)
