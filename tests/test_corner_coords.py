@@ -58,7 +58,12 @@ def test_from_ub_descending_left():
     assert coords == CornerCoords(upper_left, bottom_left, upper_right, bottom_right)
 
 
-def test_to_bbox():
-    coords = CornerCoords((1, 2), (3, 4), (5, 6), (7, 8))
+def test_to_polygon():
+    coords = CornerCoords((0, 0), (10, 0), (0, 10), (10, 10))
 
-    assert coords.to_bbox() == [(1, 2), (5, 6), (7, 8), (3, 4), (1, 2)]
+    polygon = coords.to_polygon()
+
+    assert polygon.exterior.is_ccw is True
+    assert list(polygon.boundary.coords) == [
+        (0, 0), (10, 0), (10, 10), (0, 10), (0, 0)
+    ]
