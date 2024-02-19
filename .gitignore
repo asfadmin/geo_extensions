@@ -1,3 +1,6 @@
+# Project
+poetry.lock
+
 # Distribution
 *.egg-info
 build
