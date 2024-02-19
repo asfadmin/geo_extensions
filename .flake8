@@ -1,0 +1,4 @@
+[flake8]
+inline-quotes = double
+max-line-length = 120
+extend-ignore = W503

@@ -1,0 +1,18 @@
+name: Lint
+on:
+  pull_request:
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - uses: TrueBrain/actions-flake8@v2
+        with:
+          flake8_version: 6.0.0
+          max_line_length: 120
+          plugins: flake8-isort==6.0.0 flake8-quotes==3.3.2
