@@ -1,3 +1,6 @@
 # Distribution
 *.egg-info
 build
+
+# Testing
+.hypothesis

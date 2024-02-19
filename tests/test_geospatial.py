@@ -3,11 +3,12 @@ import shapely.geometry
 import strategies
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
-from satlib.geospatial import (
+from shapely.geometry import Polygon
+
+from geo_extensions.geospatial import (
     polygon_crosses_antimeridian,
     split_polygon_on_antimeridian,
 )
-from shapely.geometry import Polygon
 
 
 @pytest.fixture
