@@ -1,82 +1,10 @@
-import pytest
 import shapely.geometry
 import strategies
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from shapely.geometry import Polygon
 
-from geo_extensions.geospatial import (
-    polygon_crosses_antimeridian,
-    split_polygon_on_antimeridian,
-)
-
-
-@pytest.fixture
-def rectangle():
-    """A rectanglular polygon"""
-    polygon = Polygon([
-        (160., 60.), (170., 60.),
-        (170., 70.), (160., 70.), (160., 60.),
-    ])
-    assert polygon.exterior.is_ccw
-
-    return polygon
-
-
-@pytest.fixture
-def centered_rectangle():
-    """A rectanglular polygon centered at 0, 0"""
-    polygon = Polygon([
-        (-30., 10.), (-30., -10.),
-        (30., 10.), (30., -10.), (-30., 10.),
-    ])
-    assert polygon.exterior.is_ccw
-
-    return polygon
-
-
-@pytest.fixture
-def antimeridian_centered_rectangle():
-    """A rectanglular polygon centered over the antimeridian"""
-    polygon = Polygon([
-        (150., 10.), (150., -10.),
-        (-150., -10.), (-150., 10.), (150., 10.),
-    ])
-    assert not polygon.exterior.is_ccw
-
-    return polygon
-
-
-def test_polygon_crosses_antimeridian_simple(centered_rectangle):
-    assert polygon_crosses_antimeridian(centered_rectangle) is False
-
-
-def test_polygon_crosses_antimeridian_tricky():
-    r"""A polygon that looks something like this, centered at 0, 0:
-        --------
-        \      /
-        /      \
-        --------
-    """
-    polygon = Polygon([
-        (-30., 10.), (-10., 0.), (-30., -10.),
-        (30., 10.), (10., 0.), (30., -10.), (-30., 10.),
-    ])
-    assert polygon_crosses_antimeridian(polygon) is False
-
-
-def test_polygon_crosses_antimeridian_tricky_crosses():
-    r"""A polygon that looks something like this, crossing the IDL:
-        --------
-        \      /
-        /      \
-        --------
-    """
-    polygon = Polygon([
-        (150., 10.), (170., 0.), (150., -10.),
-        (-150., 10.), (-170., 0.), (-150., -10.), (150., 10.),
-    ])
-    assert polygon_crosses_antimeridian(polygon) is True
+from geo_extensions.transformations import split_polygon_on_antimeridian
 
 
 @given(polygon=strategies.rectangles())
@@ -103,20 +31,20 @@ def test_split_polygon_on_antimeridian_returns_empty_list():
     polygon = Polygon([
         (180, 1), (180, 0), (-179.999, 0), (-179.999, 1), (180, 1)
     ])
-    assert split_polygon_on_antimeridian(polygon) == []
+    assert list(split_polygon_on_antimeridian(polygon)) == []
 
 
 def test_split_polygon_on_antimeridian_noop(rectangle):
-    assert split_polygon_on_antimeridian(rectangle) == [rectangle]
+    assert list(split_polygon_on_antimeridian(rectangle)) == [rectangle]
 
 
 def test_split_bbox_on_idl_meridian_noop(centered_rectangle):
-    assert split_polygon_on_antimeridian(centered_rectangle) == [centered_rectangle]
+    assert list(split_polygon_on_antimeridian(centered_rectangle)) == [centered_rectangle]
 
 
 def test_split_polygon_on_antimeridian_centered(antimeridian_centered_rectangle):
     """Polygon is centered on IDL"""
-    assert split_polygon_on_antimeridian(antimeridian_centered_rectangle) == [
+    assert list(split_polygon_on_antimeridian(antimeridian_centered_rectangle)) == [
         Polygon([
             (179.999, 10.), (150., 10.), (150., -10),
             (179.999, -10), (179.999, 10.)
@@ -136,7 +64,7 @@ def test_split_polygon_on_antimeridian_west():
     ])
     assert not polygon.exterior.is_ccw
 
-    assert split_polygon_on_antimeridian(polygon) == [
+    assert list(split_polygon_on_antimeridian(polygon)) == [
         Polygon([
             (179.999, 70.), (170., 70.), (170., 60.),
             (179.999, 60.), (179.999, 70.)
@@ -156,7 +84,7 @@ def test_split_polygon_on_antimeridian_east():
     ])
     assert not polygon.exterior.is_ccw
 
-    assert split_polygon_on_antimeridian(polygon) == [
+    assert list(split_polygon_on_antimeridian(polygon)) == [
         Polygon([
             (179.999, 70.), (179., 70.), (179., 60.),
             (179.999, 60.), (179.999, 70.)

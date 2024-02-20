@@ -38,11 +38,14 @@ even in the general case, because such a polygon will appear to be clockwise
 ordered in the shapely flat space.
 """
 
-from typing import List, Tuple
+from typing import Generator, List, Tuple
 
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, polygonize, unary_union
+
+from geo_extensions.checks import polygon_crosses_antimeridian
+from geo_extensions.types import Transformation, TransformationResult
 
 Point = Tuple[float, float]
 Bbox = List[Point]
@@ -50,7 +53,24 @@ Bbox = List[Point]
 ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 
 
-def split_polygon_on_antimeridian(polygon: Polygon) -> List[Polygon]:
+def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transformation:
+    """Create a transformation that calls polygon.simplify.
+
+    :returns: a callable transformation using the passed parameters
+    """
+    def simplify(polygon: Polygon) -> TransformationResult:
+        """Perform a shapely simplify operation on the polygon."""
+        yield polygon.simplify(tolerance, preserve_topology)
+
+    return simplify
+
+
+def reverse_polygon(polygon: Polygon) -> TransformationResult:
+    """Perform a shapely reverse operation on the polygon."""
+    yield polygon.reverse()
+
+
+def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, None]:
     """Perform adjustment when the polygon crosses the antimeridian.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
@@ -60,48 +80,18 @@ def split_polygon_on_antimeridian(polygon: Polygon) -> List[Polygon]:
         following conditions:
             - Points must be in counter clockwise winding order
             - Polygon must not cover more than half of the earth
+    :returns: a generator yielding the split polygons
     """
 
     if not polygon_crosses_antimeridian(polygon):
-        return [polygon]
+        yield polygon
+        return
 
     shifted_polygon = _shift_polygon(polygon)
     new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
 
-    return [
-        _shift_polygon_back(polygon)
-        for polygon in new_polygons
-    ]
-
-
-def polygon_crosses_antimeridian(polygon: Polygon) -> bool:
-    """Checks if the longitude coordinates 'wrap around' the 180/-180 line.
-
-    The polygon must be oriented in counter-clockwise order.
-    """
-
-    # Polygons crossing the antimeridian will appear to be mis-ordered
-    return not polygon.exterior.is_ccw
-
-
-def fixed_size_polygon_crosses_antimeridian(
-    polygon: Polygon,
-    min_lon_extent: float,
-) -> bool:
-    """Checks if the longitude coordinates 'wrap around' the 180/-180 line
-    based on a heuristic that assumes the polygon is of a certain size.
-
-    :param polygon: the polygon check.
-    :param min_lon_extent: the lower bound for the distance between the
-        longitude values of the bounding box enclosing the entire polygon.
-        Must be between (0, 180) exclusive.
-    """
-    assert 0 < min_lon_extent < 180
-
-    min_lon, _, max_lon, _ = polygon.bounds
-    dist_from_180 = 180 - min_lon_extent
-
-    return max_lon > dist_from_180 or min_lon < -dist_from_180
+    for polygon in new_polygons:
+        yield _shift_polygon_back(polygon)
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
