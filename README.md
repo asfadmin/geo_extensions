@@ -35,7 +35,7 @@ def my_custom_transformation(polygon):
 
 
 transformer = Transformer([
-    simplify_polygon,
+    simplify_polygon(0.1),
     my_custom_transformation,
     split_polygon_on_antimeridian,
 ])
