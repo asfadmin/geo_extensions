@@ -70,6 +70,13 @@ def reverse_polygon(polygon: Polygon) -> TransformationResult:
     yield polygon.reverse()
 
 
+def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
+    yield Polygon(
+        (x, y)
+        for x, y, *_ in polygon.exterior.coords
+    )
+
+
 def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, None]:
     """Perform adjustment when the polygon crosses the antimeridian.
 

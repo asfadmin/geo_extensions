@@ -4,7 +4,40 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from shapely.geometry import Polygon
 
-from geo_extensions.transformations import split_polygon_on_antimeridian
+from geo_extensions.transformations import (
+    drop_z_coordinate,
+    split_polygon_on_antimeridian,
+)
+
+
+def test_drop_z_coordinate():
+    polygon = Polygon([
+        (180, 1, 10),
+        (180, 0, 10),
+        (-179.999, 0, 10),
+        (-179.999, 1, 10),
+        (180, 1, 10),
+    ])
+    assert list(drop_z_coordinate(polygon)) == [
+        Polygon([
+            (180, 1),
+            (180, 0),
+            (-179.999, 0),
+            (-179.999, 1),
+            (180, 1),
+        ])
+    ]
+
+
+def test_drop_z_coordinate_noop():
+    polygon = Polygon([
+        (180, 1),
+        (180, 0),
+        (-179.999, 0),
+        (-179.999, 1),
+        (180, 1),
+    ])
+    assert list(drop_z_coordinate(polygon)) == [polygon]
 
 
 @given(polygon=strategies.rectangles())
