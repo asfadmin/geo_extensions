@@ -3,6 +3,7 @@ from geo_extensions.checks import (
     polygon_crosses_antimeridian,
 )
 from geo_extensions.transformations import (
+    drop_z_coordinate,
     reverse_polygon,
     simplify_polygon,
     split_polygon_on_antimeridian,
@@ -18,6 +19,7 @@ default_transformer = Transformer([
 
 __all__ = (
     "default_transformer",
+    "drop_z_coordinate",
     "fixed_size_polygon_crosses_antimeridian",
     "polygon_crosses_antimeridian",
     "reverse_polygon",
