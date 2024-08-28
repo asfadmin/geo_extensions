@@ -1,7 +1,7 @@
 from typing import Iterable, List, Sequence, Tuple
 
 from shapely import Geometry, wkt
-from shapely.geometry import MultiPolygon, Polygon
+from shapely.geometry import MultiPolygon, Polygon, shape
 
 from geo_extensions.types import Transformation, TransformationResult
 
@@ -11,6 +11,18 @@ class Transformer:
 
     def __init__(self, transformations: Sequence[Transformation]):
         self.transformations = transformations
+
+    def from_geo_json(self, geo_json: dict) -> List[Polygon]:
+        """Load and transform an object from a GeoJSON dict.
+
+        :returns: a list of transformed polygons
+        :raises: ShapelyError, Exception
+        """
+
+        obj = shape(geo_json)
+        polygons = to_polygons(obj)
+
+        return self.transform(polygons)
 
     def from_wkt(self, wkt_str: str) -> List[Polygon]:
         """Load and transform an object from a WKT string.
