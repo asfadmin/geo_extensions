@@ -185,7 +185,7 @@ def test_from_geo_json_multipolygon(simplify_transformer):
 def test_from_wkt_bad_points(simplify_transformer):
     with pytest.raises(
         Exception,
-        match=r"WKT: 'POINT \(30 10\)' is not a Polygon or MultiPolygon",
+        match=r"'POINT \(30 10\)' is not a Polygon or MultiPolygon",
     ):
         simplify_transformer.from_wkt("POINT (30 10)")
 
@@ -195,8 +195,8 @@ def test_from_wkt_bad_points(simplify_transformer):
 
 def test_from_geo_json_bad_points(simplify_transformer):
     with pytest.raises(
-            Exception,
-            match=r"WKT: 'POINT \(30 10\)' is not a Polygon or MultiPolygon",
+        Exception,
+        match=r"'POINT \(30 10\)' is not a Polygon or MultiPolygon",
     ):
         simplify_transformer.from_geo_json({
             "type": "Point",
