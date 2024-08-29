@@ -65,7 +65,7 @@ def to_polygons(obj: Geometry) -> TransformationResult:
         yield obj
         return
 
-    raise Exception(f"WKT: '{obj}' is not a Polygon or MultiPolygon")
+    raise Exception(f"'{obj}' is not a Polygon or MultiPolygon")
 
 
 def _apply_transformations(
