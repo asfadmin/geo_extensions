@@ -23,7 +23,7 @@ be reused to perform the same manipulation on many polygons.
 from geo_extensions import Transformer
 from geo_extensions.transformations import (
     simplify_polygon,
-    split_polygon_on_antimeridian,
+    split_polygon_on_antimeridian_ccw,
 )
 
 
@@ -37,7 +37,7 @@ def my_custom_transformation(polygon):
 transformer = Transformer([
     simplify_polygon(0.1),
     my_custom_transformation,
-    split_polygon_on_antimeridian,
+    split_polygon_on_antimeridian_ccw,
 ])
 
 final_polygons = transformer.transform([

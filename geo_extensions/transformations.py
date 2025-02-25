@@ -38,13 +38,16 @@ even in the general case, because such a polygon will appear to be clockwise
 ordered in the shapely flat space.
 """
 
-from typing import Generator, List, Tuple
+from typing import List, Tuple
 
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, polygonize, unary_union
 
-from geo_extensions.checks import polygon_crosses_antimeridian
+from geo_extensions.checks import (
+    polygon_crosses_antimeridian_ccw,
+    polygon_crosses_antimeridian_fixed_size,
+)
 from geo_extensions.types import Transformation, TransformationResult
 
 Point = Tuple[float, float]
@@ -77,8 +80,9 @@ def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
     )
 
 
-def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, None]:
-    """Perform adjustment when the polygon crosses the antimeridian.
+def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
+    """Perform adjustment when the polygon crosses the antimeridian and is known
+    to be wound in counter clockwise order.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
     being interpreted as wrapping the long way around the Earth.
@@ -90,7 +94,7 @@ def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, 
     :returns: a generator yielding the split polygons
     """
 
-    if not polygon_crosses_antimeridian(polygon):
+    if not polygon_crosses_antimeridian_ccw(polygon):
         yield polygon
         return
 
@@ -99,6 +103,35 @@ def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, 
 
     for polygon in new_polygons:
         yield _shift_polygon_back(polygon)
+
+
+def split_polygon_on_antimeridian_fixed_size(
+    min_lon_extent: float,
+) -> Transformation:
+    """Perform adjustment when the polygon crosses the antimeridian using a
+    heuristic to determine if the polygon needs to be split.
+
+    CMR requires the polygon to be split into two separate polygons to avoid it
+    being interpreted as wrapping the long way around the Earth.
+
+    :param min_lon_extent: the lower bound for the distance between the
+        longitude values of the bounding box enclosing the entire polygon.
+        Must be between (0, 180) exclusive.
+    :returns: a callable transformation using the passed parameters
+    """
+
+    def split(polygon: Polygon) -> TransformationResult:
+        if not polygon_crosses_antimeridian_fixed_size(polygon, min_lon_extent):
+            yield polygon
+            return
+
+        shifted_polygon = _shift_polygon(polygon)
+        new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
+
+        for polygon in new_polygons:
+            yield _shift_polygon_back(polygon)
+
+    return split
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
