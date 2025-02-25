@@ -44,7 +44,10 @@ from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, polygonize, unary_union
 
-from geo_extensions.checks import polygon_crosses_antimeridian_ccw
+from geo_extensions.checks import (
+    polygon_crosses_antimeridian_ccw,
+    polygon_crosses_antimeridian_fixed_size,
+)
 from geo_extensions.types import Transformation, TransformationResult
 
 Point = Tuple[float, float]
@@ -100,6 +103,35 @@ def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
 
     for polygon in new_polygons:
         yield _shift_polygon_back(polygon)
+
+
+def split_polygon_on_antimeridian_fixed_size(
+    min_lon_extent: float,
+) -> Transformation:
+    """Perform adjustment when the polygon crosses the antimeridian using a
+    heuristic to determine if the polygon needs to be split.
+
+    CMR requires the polygon to be split into two separate polygons to avoid it
+    being interpreted as wrapping the long way around the Earth.
+
+    :param min_lon_extent: the lower bound for the distance between the
+        longitude values of the bounding box enclosing the entire polygon.
+        Must be between (0, 180) exclusive.
+    :returns: a callable transformation using the passed parameters
+    """
+
+    def split(polygon: Polygon) -> TransformationResult:
+        if not polygon_crosses_antimeridian_fixed_size(polygon, min_lon_extent):
+            yield polygon
+            return
+
+        shifted_polygon = _shift_polygon(polygon)
+        new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
+
+        for polygon in new_polygons:
+            yield _shift_polygon_back(polygon)
+
+    return split
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:

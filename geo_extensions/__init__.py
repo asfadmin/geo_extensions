@@ -7,6 +7,7 @@ from geo_extensions.transformations import (
     reverse_polygon,
     simplify_polygon,
     split_polygon_on_antimeridian_ccw,
+    split_polygon_on_antimeridian_fixed_size,
 )
 from geo_extensions.transformer import Transformer, to_polygons
 from geo_extensions.types import Transformation, TransformationResult
@@ -25,6 +26,7 @@ __all__ = (
     "reverse_polygon",
     "simplify_polygon",
     "split_polygon_on_antimeridian_ccw",
+    "split_polygon_on_antimeridian_fixed_size",
     "to_polygons",
     "Transformation",
     "TransformationResult",

@@ -7,6 +7,7 @@ from shapely.geometry import Polygon
 from geo_extensions.transformations import (
     drop_z_coordinate,
     split_polygon_on_antimeridian_ccw,
+    split_polygon_on_antimeridian_fixed_size,
 )
 
 
@@ -192,5 +193,34 @@ def test_split_polygon_on_antimeridian_ccw_opera_example():
             (-178.918, 66.663),
             (-179.999, 66.663),
             (-179.999, 66.140),
+        ],
+    ]
+
+
+def test_split_polygon_on_antimeridian_fixed_size_alos2_example():
+    """Example from ALOS2: ALOS2014555550-140830"""
+    polygon = Polygon([
+        (-164.198, -82.125), (172.437, -83.885), (165.618, -80.869),
+        (-176.331, -79.578), (-164.198, -82.125),
+    ])
+    polygons = split_polygon_on_antimeridian_fixed_size(40)(polygon)
+
+    # Comparing the polygons directly doesn't seem to work for some reason.
+    coords = [list(poly.boundary.coords) for poly in polygons]
+    assert all(poly.is_ccw for poly in polygons)
+    assert coords == [
+        [
+            (179.999, -79.84040535150407),
+            (165.61799999999994, -80.869),
+            (172.437, -83.885),
+            (179.999, -83.31530686924889),
+            (179.999, -79.84040535150407),
+        ],
+        [
+            (-179.999, -83.31530686924889),
+            (-164.198, -82.125),
+            (-176.331, -79.578),
+            (-179.999, -79.84040535150407),
+            (-179.999, -83.31530686924889),
         ],
     ]
