@@ -38,13 +38,13 @@ even in the general case, because such a polygon will appear to be clockwise
 ordered in the shapely flat space.
 """
 
-from typing import Generator, List, Tuple
+from typing import List, Tuple
 
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import linemerge, polygonize, unary_union
 
-from geo_extensions.checks import polygon_crosses_antimeridian
+from geo_extensions.checks import polygon_crosses_antimeridian_ccw
 from geo_extensions.types import Transformation, TransformationResult
 
 Point = Tuple[float, float]
@@ -77,8 +77,9 @@ def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
     )
 
 
-def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, None]:
-    """Perform adjustment when the polygon crosses the antimeridian.
+def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
+    """Perform adjustment when the polygon crosses the antimeridian and is known
+    to be wound in counter clockwise order.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
     being interpreted as wrapping the long way around the Earth.
@@ -90,7 +91,7 @@ def split_polygon_on_antimeridian(polygon: Polygon) -> Generator[Polygon, None, 
     :returns: a generator yielding the split polygons
     """
 
-    if not polygon_crosses_antimeridian(polygon):
+    if not polygon_crosses_antimeridian_ccw(polygon):
         yield polygon
         return
 

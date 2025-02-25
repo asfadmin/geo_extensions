@@ -1,7 +1,7 @@
 from shapely.geometry import Polygon
 
 
-def polygon_crosses_antimeridian(polygon: Polygon) -> bool:
+def polygon_crosses_antimeridian_ccw(polygon: Polygon) -> bool:
     """Checks if the longitude coordinates 'wrap around' the 180/-180 line.
 
     The polygon must be oriented in counter-clockwise order.
@@ -13,7 +13,7 @@ def polygon_crosses_antimeridian(polygon: Polygon) -> bool:
     return not polygon.exterior.is_ccw
 
 
-def fixed_size_polygon_crosses_antimeridian(
+def polygon_crosses_antimeridian_fixed_size(
     polygon: Polygon,
     min_lon_extent: float,
 ) -> bool:
