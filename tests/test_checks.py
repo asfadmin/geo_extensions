@@ -19,7 +19,7 @@ def test_polygon_crosses_antimeridian_ccw_tricky():
     """
     polygon = Polygon([
         (-30., 10.), (-10., 0.), (-30., -10.),
-        (30., 10.), (10., 0.), (30., -10.), (-30., 10.),
+        (30., -10.), (10., 0.), (30., 10.), (-30., 10.),
     ])
     assert polygon_crosses_antimeridian_ccw(polygon) is False
 
@@ -35,6 +35,28 @@ def test_polygon_crosses_antimeridian_ccw_tricky_crosses():
         (150., 10.), (170., 0.), (150., -10.),
         (-150., 10.), (-170., 0.), (-150., -10.), (150., 10.),
     ])
+    assert polygon_crosses_antimeridian_ccw(polygon) is True
+
+
+def test_polygon_crosses_antimeridian_ccw_tricky_crosses_multiple_times(
+    multi_crossing_polygon,
+):
+    assert polygon_crosses_antimeridian_ccw(multi_crossing_polygon) is True
+
+
+def test_polygon_crosses_antimeridian_ccw_alos2_antarctica():
+    """A polygon where three points are on one side and one point is on the
+    other side of the antimeridian line.
+
+    ALOS2 granule: ALOS2075945400-151019-WBDR1.1__D
+    """
+    polygon = Polygon([
+        (-178.328, -79.438),
+        (179.625, -76.163),
+        (166.084, -76.163),
+        (164.037, -79.438),
+    ])
+
     assert polygon_crosses_antimeridian_ccw(polygon) is True
 
 

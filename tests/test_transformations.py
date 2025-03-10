@@ -69,26 +69,56 @@ def test_split_polygon_on_antimeridian_ccw_returns_empty_list():
 
 
 def test_split_polygon_on_antimeridian_ccw_noop(rectangle):
-    assert list(split_polygon_on_antimeridian_ccw(rectangle)) == [rectangle]
+    split_polygons = list(split_polygon_on_antimeridian_ccw(rectangle))
+    assert split_polygons == [rectangle]
 
 
-def test_split_bbox_on_idl_meridian_noop(centered_rectangle):
-    assert list(split_polygon_on_antimeridian_ccw(centered_rectangle)) == [
-        centered_rectangle,
-    ]
+def test_split_polygon_on_antimeridian_ccw_centered_noop(centered_rectangle):
+    split_polygons = list(split_polygon_on_antimeridian_ccw(centered_rectangle))
+    assert split_polygons == [centered_rectangle]
 
 
 def test_split_polygon_on_antimeridian_ccw_centered(antimeridian_centered_rectangle):
     """Polygon is centered on IDL"""
-    assert list(split_polygon_on_antimeridian_ccw(antimeridian_centered_rectangle)) == [
+    split_polygons = list(
+        split_polygon_on_antimeridian_ccw(antimeridian_centered_rectangle),
+    )
+    assert split_polygons == [
         Polygon([
-            (179.999, 10.), (150., 10.), (150., -10),
-            (179.999, -10), (179.999, 10.)
+            (179.999, -10),
+            (179.999, 10.),
+            (150., 10.),
+            (150., -10),
+            (179.999, -10),
         ]),
         Polygon([
-            (-179.999, -10.), (-150., -10.), (-150., 10),
-            (-179.999, 10), (-179.999, -10.)
-        ])
+            (-179.999, 10),
+            (-179.999, -10.),
+            (-150., -10.),
+            (-150., 10),
+            (-179.999, 10),
+        ]),
+    ]
+
+
+def test_split_polygon_on_antimeridian_ccw_crosses_multiple_times(
+    multi_crossing_polygon,
+):
+    split_polygons = list(
+        split_polygon_on_antimeridian_ccw(multi_crossing_polygon),
+    )
+    assert split_polygons == [
+        Polygon([
+            (179.999, -10),
+            (179.999, -4),
+            (160, 0),
+            (179.999, 4),
+            (179.999, 10),
+            (150, 10),
+            (150, -10),
+        ]),
+        Polygon([(-179.999, -4), (-179.999, -10), (-150, -10), (-179.999, -4)]),
+        Polygon([(-179.999, 10), (-179.999, 4), (-150, 10), (-179.999, 10)]),
     ]
 
 
@@ -102,12 +132,18 @@ def test_split_polygon_on_antimeridian_ccw_west():
 
     assert list(split_polygon_on_antimeridian_ccw(polygon)) == [
         Polygon([
-            (179.999, 70.), (170., 70.), (170., 60.),
-            (179.999, 60.), (179.999, 70.)
+            (179.999, 60.),
+            (179.999, 70.),
+            (170., 70.),
+            (170., 60.),
+            (179.999, 60.),
         ]),
         Polygon([
-            (-179.999, 60.), (-179., 60.), (-179., 70.),
-            (-179.999, 70.), (-179.999, 60.)
+            (-179.999, 70.),
+            (-179.999, 60.),
+            (-179., 60.),
+            (-179., 70.),
+            (-179.999, 70.),
         ]),
     ]
 
@@ -122,12 +158,18 @@ def test_split_polygon_on_antimeridian_ccw_east():
 
     assert list(split_polygon_on_antimeridian_ccw(polygon)) == [
         Polygon([
-            (179.999, 70.), (179., 70.), (179., 60.),
-            (179.999, 60.), (179.999, 70.)
+            (179.999, 60.),
+            (179.999, 70.),
+            (179., 70.),
+            (179., 60.),
+            (179.999, 60.),
         ]),
         Polygon([
-            (-179.999, 60.), (-170., 60.), (-170., 70.),
-            (-179.999, 70.), (-179.999, 60.)
+            (-179.999, 70.),
+            (-179.999, 60.),
+            (-170., 60.),
+            (-170., 70.),
+            (-179.999, 70.),
         ]),
     ]
 
@@ -147,18 +189,48 @@ def test_split_polygon_on_antimeridian_ccw_alos_example():
     coords = [list(poly.boundary.coords) for poly in polygons]
     assert coords == [
         [
+            (179.999, 49.68139432176656),
             (179.999, 50.21196666666666),
             (179.64800000000002, 50.172),
             (179.79399999999998, 49.658),
             (179.999, 49.68139432176656),
-            (179.999, 50.21196666666666),
         ],
         [
+            (-179.999, 50.21196666666666),
             (-179.999, 49.68139432176656),
             (-179.255, 49.766),
             (-179.392, 50.281),
             (-179.999, 50.21196666666666),
-            (-179.999, 49.68139432176656),
+        ],
+    ]
+
+
+def test_split_polygon_on_antimeridian_ccw_alos2_example():
+    """ALOS2 granule: ALOS2075945400-151019-WBDR1.1__D"""
+    polygon = Polygon([
+        (-178.328, -79.438),
+        (179.625, -76.163),
+        (166.084, -76.163),
+        (164.037, -79.438),
+    ])
+    polygons = split_polygon_on_antimeridian_ccw(polygon)
+
+    # Comparing the polygons directly doesn't seem to work for some reason.
+    coords = [list(poly.boundary.coords) for poly in polygons]
+    assert coords == [
+        [
+            (-179.999, -76.76296336101612),
+            (-179.999, -79.438),
+            (-178.328, -79.438),
+            (-179.999, -76.76296336101612),
+        ],
+        [
+            (179.999, -79.438),
+            (179.999, -76.76296336101612),
+            (179.625, -76.163),
+            (166.08400000000006, -76.163),
+            (164.03700000000003, -79.438),
+            (179.999, -79.438),
         ],
     ]
 
@@ -181,18 +253,18 @@ def test_split_polygon_on_antimeridian_ccw_opera_example():
     coords = [list(poly.boundary.coords) for poly in polygons]
     assert coords == [
         [
+            (179.999, 66.140),
             (179.999, 66.663),
             (178.83400000000006, 66.663),
             (178.83400000000006, 66.140),
             (179.999, 66.140),
-            (179.999, 66.663),
         ],
         [
+            (-179.999, 66.663),
             (-179.999, 66.140),
             (-178.918, 66.140),
             (-178.918, 66.663),
             (-179.999, 66.663),
-            (-179.999, 66.140),
         ],
     ]
 
@@ -210,17 +282,17 @@ def test_split_polygon_on_antimeridian_fixed_size_alos2_example():
     assert all(poly.is_ccw for poly in polygons)
     assert coords == [
         [
-            (179.999, -79.84040535150407),
-            (165.61799999999994, -80.869),
-            (172.437, -83.885),
-            (179.999, -83.31530686924889),
-            (179.999, -79.84040535150407),
-        ],
-        [
-            (-179.999, -83.31530686924889),
             (-164.198, -82.125),
             (-176.331, -79.578),
             (-179.999, -79.84040535150407),
             (-179.999, -83.31530686924889),
+            (-164.198, -82.125),
+        ],
+        [
+            (179.999, -83.31530686924889),
+            (179.999, -79.84040535150407),
+            (165.61799999999994, -80.869),
+            (172.437, -83.885),
+            (179.999, -83.31530686924889),
         ],
     ]

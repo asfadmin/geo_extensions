@@ -9,8 +9,9 @@ def polygon_crosses_antimeridian_ccw(polygon: Polygon) -> bool:
     :param polygon: the polygon to check
     """
 
-    # Polygons crossing the antimeridian will appear to be mis-ordered
-    return not polygon.exterior.is_ccw
+    # Polygons crossing the antimeridian will appear to be mis-ordered or
+    # crossing themselves
+    return not (polygon.exterior.is_ccw and polygon.exterior.is_valid)
 
 
 def polygon_crosses_antimeridian_fixed_size(

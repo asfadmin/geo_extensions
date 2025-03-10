@@ -17,6 +17,7 @@ def rectangle():
         (170., 70.), (160., 70.), (160., 60.),
     ])
     assert polygon.exterior.is_ccw
+    assert polygon.exterior.is_valid
 
     return polygon
 
@@ -26,9 +27,10 @@ def centered_rectangle():
     """A rectanglular polygon centered at 0, 0"""
     polygon = Polygon([
         (-30., 10.), (-30., -10.),
-        (30., 10.), (30., -10.), (-30., 10.),
+        (30., -10.), (30., 10.), (-30., 10.),
     ])
     assert polygon.exterior.is_ccw
+    assert polygon.exterior.is_valid
 
     return polygon
 
@@ -41,5 +43,25 @@ def antimeridian_centered_rectangle():
         (-150., -10.), (-150., 10.), (150., 10.),
     ])
     assert not polygon.exterior.is_ccw
+    assert polygon.exterior.is_valid
+
+    return polygon
+
+
+@pytest.fixture
+def multi_crossing_polygon():
+    r"""A polygon that looks something like this, crossing back and forth
+    accross the IDL multiple times:
+        --------
+        |      /
+        |      \
+        --------
+    """
+    polygon = Polygon([
+        (150., -10.), (-150., -10.), (160., 0.),
+        (-150., 10.), (150., 10.), (150., -10.),
+    ])
+    assert not polygon.exterior.is_ccw
+    assert not polygon.exterior.is_valid
 
     return polygon

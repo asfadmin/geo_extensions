@@ -40,9 +40,9 @@ ordered in the shapely flat space.
 
 from typing import List, Tuple
 
+import shapely.ops
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
-from shapely.ops import linemerge, polygonize, unary_union
 
 from geo_extensions.checks import (
     polygon_crosses_antimeridian_ccw,
@@ -171,14 +171,11 @@ def _split_polygon(
     polygon: Polygon,
     line: LineString
 ) -> List[Polygon]:
-    """Polygon and line must intersect."""
-
-    merged = linemerge([polygon.boundary, line])
-    borders = unary_union(merged)
+    split_collection = shapely.ops.split(polygon, line)
 
     return [
         orient(poly)
-        for poly in polygonize(borders)
+        for poly in split_collection.geoms
         if not _ignore_polygon(poly)
     ]
 
