@@ -38,6 +38,12 @@ def test_polygon_crosses_antimeridian_ccw_tricky_crosses():
     assert polygon_crosses_antimeridian_ccw(polygon) is True
 
 
+def test_polygon_crosses_antimeridian_ccw_tricky_crosses_multiple_times(
+    multi_crossing_polygon,
+):
+    assert polygon_crosses_antimeridian_ccw(multi_crossing_polygon) is True
+
+
 def test_polygon_crosses_antimeridian_ccw_alos2_antarctica():
     """A polygon where three points are on one side and one point is on the
     other side of the antimeridian line.
