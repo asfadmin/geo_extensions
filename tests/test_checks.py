@@ -38,6 +38,22 @@ def test_polygon_crosses_antimeridian_ccw_tricky_crosses():
     assert polygon_crosses_antimeridian_ccw(polygon) is True
 
 
+def test_polygon_crosses_antimeridian_ccw_alos2_antarctica():
+    """A polygon where three points are on one side and one point is on the
+    other side of the antimeridian line.
+
+    ALOS2 granule: ALOS2075945400-151019-WBDR1.1__D
+    """
+    polygon = Polygon([
+        (-178.328, -79.438),
+        (179.625, -76.163),
+        (166.084, -76.163),
+        (164.037, -79.438),
+    ])
+
+    assert polygon_crosses_antimeridian_ccw(polygon) is True
+
+
 def test_polygon_crosses_antimeridian_fixed_size_simple(centered_rectangle):
     assert polygon_crosses_antimeridian_fixed_size(centered_rectangle, 20) is False
     assert polygon_crosses_antimeridian_fixed_size(centered_rectangle, 179) is True

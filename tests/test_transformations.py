@@ -163,6 +163,36 @@ def test_split_polygon_on_antimeridian_ccw_alos_example():
     ]
 
 
+def test_split_polygon_on_antimeridian_ccw_alos2_example():
+    """ALOS2 granule: ALOS2075945400-151019-WBDR1.1__D"""
+    polygon = Polygon([
+        (-178.328, -79.438),
+        (179.625, -76.163),
+        (166.084, -76.163),
+        (164.037, -79.438),
+    ])
+    polygons = split_polygon_on_antimeridian_ccw(polygon)
+
+    # Comparing the polygons directly doesn't seem to work for some reason.
+    coords = [list(poly.boundary.coords) for poly in polygons]
+    assert coords == [
+        [
+            (179.999, -76.76296336101612),
+            (179.625, -76.163),
+            (166.08400000000006, -76.163),
+            (164.03700000000003, -79.438),
+            (179.999, -79.438),
+            (179.999, -76.76296336101612),
+        ],
+        [
+            (-179.999, -79.438),
+            (-178.328, -79.438),
+            (-179.999, -76.76296336101612),
+            (-179.999, -79.438),
+        ],
+    ]
+
+
 def test_split_polygon_on_antimeridian_ccw_opera_example():
     """Example from OPERA RTC Static layer:
 
