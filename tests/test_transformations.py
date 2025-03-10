@@ -69,13 +69,13 @@ def test_split_polygon_on_antimeridian_ccw_returns_empty_list():
 
 
 def test_split_polygon_on_antimeridian_ccw_noop(rectangle):
-    assert list(split_polygon_on_antimeridian_ccw(rectangle)) == [rectangle]
+    split_polygons = list(split_polygon_on_antimeridian_ccw(rectangle))
+    assert split_polygons == [rectangle]
 
 
-def test_split_bbox_on_idl_meridian_noop(centered_rectangle):
-    assert list(split_polygon_on_antimeridian_ccw(centered_rectangle)) == [
-        centered_rectangle,
-    ]
+def test_split_polygon_on_antimeridian_ccw_centered_noop(centered_rectangle):
+    split_polygons = list(split_polygon_on_antimeridian_ccw(centered_rectangle))
+    assert split_polygons == [centered_rectangle]
 
 
 def test_split_polygon_on_antimeridian_ccw_centered(antimeridian_centered_rectangle):

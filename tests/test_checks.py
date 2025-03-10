@@ -19,7 +19,7 @@ def test_polygon_crosses_antimeridian_ccw_tricky():
     """
     polygon = Polygon([
         (-30., 10.), (-10., 0.), (-30., -10.),
-        (30., 10.), (10., 0.), (30., -10.), (-30., 10.),
+        (30., -10.), (10., 0.), (30., 10.), (-30., 10.),
     ])
     assert polygon_crosses_antimeridian_ccw(polygon) is False
 
