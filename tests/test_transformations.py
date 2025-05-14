@@ -195,6 +195,38 @@ def test_split_polygon_on_antimeridian_ccw_east():
     ]
 
 
+def test_split_polygon_on_antimeridian_ccw_close_point():
+    """Polygon has a point that is extremely close to the antimeridian"""
+    polygon = Polygon([
+        (179.999999, 70.),
+        (179., 60.), (-170., 60.),
+        (-170., 70.), (179., 70.)
+    ])
+    assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
+        Polygon([
+            (179.999, 60.),
+            (179.999, 70.),
+            (179.999, 70.),
+            (179., 60.),
+            (179.999, 60.),
+        ]),
+        Polygon([
+            (-179.999, 70.),
+            (-179.999, 60.),
+            (-170., 60.),
+            (-170., 70.),
+            (-179.999, 70.),
+        ]),
+    ]
+
+
 def test_split_polygon_on_antimeridian_ccw_alos_example():
     """Example from ALOS mission: ALPSRP237090990-L1.1"""
     polygon = Polygon([
@@ -298,6 +330,40 @@ def test_split_polygon_on_antimeridian_ccw_opera_example():
             (-178.918, 66.140),
             (-178.918, 66.663),
             (-179.999, 66.663),
+        ],
+    ]
+
+
+def test_split_polygon_on_antimeridian_ccw_opera_example_pre_split():
+    """Example from OPERA CLSC which crosses the IDL but is pre-split:
+
+    OPERA_L2_CSLC-S1_T001-000688-IW1_20250504T183220Z_20250505T112029Z_S1A_VV_v1.1
+    """
+    polygon = Polygon([
+        (180, 64.67712437067621),
+        (180, 64.50629047887854),
+        (179.9988239237079, 64.50640025835617),
+        (179.9167734717595, 64.51400884003007),
+        (179.999315144991, 64.6771877237759),
+        (180, 64.67712437067621),
+    ])
+    assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    # Comparing the polygons directly doesn't seem to work for some reason.
+    coords = [list(poly.boundary.coords) for poly in polygons]
+    assert coords == [
+        [
+            (179.999, 64.67712437067621),
+            (179.999, 64.6771877237759),
+            (179.91677347175948, 64.51400884003007),
+            (179.99882392370796, 64.50640025835617),
+            (179.999, 64.50629047887854),
+            (179.999, 64.67712437067621),
         ],
     ]
 
