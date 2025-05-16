@@ -156,13 +156,23 @@ def _shift_polygon_back(polygon: Polygon) -> Polygon:
     ])
 
 
-def _adjust_lon(lon: float, max_lon: float) -> float:
+def _adjust_lon(
+    lon: float,
+    max_lon: float,
+    clamp_min: float = -179.999,
+    clamp_max: float = 179.999,
+) -> float:
     if lon > 180.0:
-        return lon - 360
+        lon -= 360
     elif lon == 180.0 and max_lon == 180.0:
-        return 179.999
+        return clamp_max
     elif lon == 180.0:
-        return -179.999
+        return clamp_min
+
+    if lon > clamp_max:
+        return clamp_max
+    if lon < clamp_min:
+        return clamp_min
 
     return lon
 
@@ -188,7 +198,7 @@ def _ignore_polygon(polygon: Polygon) -> bool:
     # polygons that are contained within the +/-0.001 degrees around the
     # antimeridian. Due to possible floating point errors in the distance
     # calculation, we are a little generous in this trimming and set our
-    # threshold to 0.0015 instead of just 0.0015
+    # threshold to 0.0015 instead of just 0.001
     #
     # For instance:
     # >>> 180.001-180

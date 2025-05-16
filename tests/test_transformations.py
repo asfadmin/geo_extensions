@@ -46,6 +46,7 @@ def test_drop_z_coordinate_noop():
 def test_split_polygon_on_antimeridian_ccw_returns_ccw(polygon):
     for poly in split_polygon_on_antimeridian_ccw(polygon):
         assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
 
 
 @given(
@@ -80,10 +81,15 @@ def test_split_polygon_on_antimeridian_ccw_centered_noop(centered_rectangle):
 
 def test_split_polygon_on_antimeridian_ccw_centered(antimeridian_centered_rectangle):
     """Polygon is centered on IDL"""
-    split_polygons = list(
+    polygons = list(
         split_polygon_on_antimeridian_ccw(antimeridian_centered_rectangle),
     )
-    assert split_polygons == [
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
         Polygon([
             (179.999, -10),
             (179.999, 10.),
@@ -104,10 +110,15 @@ def test_split_polygon_on_antimeridian_ccw_centered(antimeridian_centered_rectan
 def test_split_polygon_on_antimeridian_ccw_crosses_multiple_times(
     multi_crossing_polygon,
 ):
-    split_polygons = list(
+    polygons = list(
         split_polygon_on_antimeridian_ccw(multi_crossing_polygon),
     )
-    assert split_polygons == [
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
         Polygon([
             (179.999, -10),
             (179.999, -4),
@@ -129,8 +140,13 @@ def test_split_polygon_on_antimeridian_ccw_west():
         (-179., 70.), (170., 70.)
     ])
     assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
 
-    assert list(split_polygon_on_antimeridian_ccw(polygon)) == [
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
         Polygon([
             (179.999, 60.),
             (179.999, 70.),
@@ -155,12 +171,49 @@ def test_split_polygon_on_antimeridian_ccw_east():
         (-170., 70.), (179., 70.)
     ])
     assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
 
-    assert list(split_polygon_on_antimeridian_ccw(polygon)) == [
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
         Polygon([
             (179.999, 60.),
             (179.999, 70.),
             (179., 70.),
+            (179., 60.),
+            (179.999, 60.),
+        ]),
+        Polygon([
+            (-179.999, 70.),
+            (-179.999, 60.),
+            (-170., 60.),
+            (-170., 70.),
+            (-179.999, 70.),
+        ]),
+    ]
+
+
+def test_split_polygon_on_antimeridian_ccw_close_point():
+    """Polygon has a point that is extremely close to the antimeridian"""
+    polygon = Polygon([
+        (179.999999, 70.),
+        (179., 60.), (-170., 60.),
+        (-170., 70.), (179., 70.)
+    ])
+    assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    assert polygons == [
+        Polygon([
+            (179.999, 60.),
+            (179.999, 70.),
+            (179.999, 70.),
             (179., 60.),
             (179.999, 60.),
         ]),
@@ -183,7 +236,11 @@ def test_split_polygon_on_antimeridian_ccw_alos_example():
         (-179.392, 50.281),
         (179.648, 50.172),
     ])
-    polygons = split_polygon_on_antimeridian_ccw(polygon)
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
 
     # Comparing the polygons directly doesn't seem to work for some reason.
     coords = [list(poly.boundary.coords) for poly in polygons]
@@ -213,7 +270,11 @@ def test_split_polygon_on_antimeridian_ccw_alos2_example():
         (166.084, -76.163),
         (164.037, -79.438),
     ])
-    polygons = split_polygon_on_antimeridian_ccw(polygon)
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
 
     # Comparing the polygons directly doesn't seem to work for some reason.
     coords = [list(poly.boundary.coords) for poly in polygons]
@@ -247,7 +308,11 @@ def test_split_polygon_on_antimeridian_ccw_opera_example():
         -178.918,
     )
     polygon = shapely.geometry.box(east, north, west, south, ccw=True)
-    polygons = split_polygon_on_antimeridian_ccw(polygon)
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
 
     # Comparing the polygons directly doesn't seem to work for some reason.
     coords = [list(poly.boundary.coords) for poly in polygons]
@@ -269,17 +334,54 @@ def test_split_polygon_on_antimeridian_ccw_opera_example():
     ]
 
 
+def test_split_polygon_on_antimeridian_ccw_opera_example_pre_split():
+    """Example from OPERA CLSC which crosses the IDL but is pre-split:
+
+    OPERA_L2_CSLC-S1_T001-000688-IW1_20250504T183220Z_20250505T112029Z_S1A_VV_v1.1
+    """
+    polygon = Polygon([
+        (180, 64.67712437067621),
+        (180, 64.50629047887854),
+        (179.9988239237079, 64.50640025835617),
+        (179.9167734717595, 64.51400884003007),
+        (179.999315144991, 64.6771877237759),
+        (180, 64.67712437067621),
+    ])
+    assert not polygon.exterior.is_ccw
+    polygons = list(split_polygon_on_antimeridian_ccw(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
+
+    # Comparing the polygons directly doesn't seem to work for some reason.
+    coords = [list(poly.boundary.coords) for poly in polygons]
+    assert coords == [
+        [
+            (179.999, 64.67712437067621),
+            (179.999, 64.6771877237759),
+            (179.91677347175948, 64.51400884003007),
+            (179.99882392370796, 64.50640025835617),
+            (179.999, 64.50629047887854),
+            (179.999, 64.67712437067621),
+        ],
+    ]
+
+
 def test_split_polygon_on_antimeridian_fixed_size_alos2_example():
     """Example from ALOS2: ALOS2014555550-140830"""
     polygon = Polygon([
         (-164.198, -82.125), (172.437, -83.885), (165.618, -80.869),
         (-176.331, -79.578), (-164.198, -82.125),
     ])
-    polygons = split_polygon_on_antimeridian_fixed_size(40)(polygon)
+    polygons = list(split_polygon_on_antimeridian_fixed_size(40)(polygon))
+
+    for poly in polygons:
+        assert poly.exterior.is_ccw
+        assert poly.exterior.is_valid
 
     # Comparing the polygons directly doesn't seem to work for some reason.
     coords = [list(poly.boundary.coords) for poly in polygons]
-    assert all(poly.is_ccw for poly in polygons)
     assert coords == [
         [
             (-164.198, -82.125),
