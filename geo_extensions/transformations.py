@@ -144,10 +144,7 @@ def _shift_polygon(polygon: Polygon) -> Polygon:
 
 
 def _shift_polygon_back(polygon: Polygon) -> Polygon:
-    """Shift back to -180-180 range.
-
-    Also replaces points that land right on +/-180 with +/-179.999.
-    """
+    """Shift back to -180-180 range."""
 
     _, _, max_lon, _ = polygon.bounds
     return Polygon([
@@ -156,30 +153,18 @@ def _shift_polygon_back(polygon: Polygon) -> Polygon:
     ])
 
 
-def _adjust_lon(
-    lon: float,
-    max_lon: float,
-    clamp_min: float = -179.999,
-    clamp_max: float = 179.999,
-) -> float:
+def _adjust_lon(lon: float, max_lon: float) -> float:
     if lon > 180.0:
         lon -= 360
-    elif lon == 180.0 and max_lon == 180.0:
-        return clamp_max
-    elif lon == 180.0:
-        return clamp_min
-
-    if lon > clamp_max:
-        return clamp_max
-    if lon < clamp_min:
-        return clamp_min
+    elif lon == 180.0 and max_lon != 180.0:
+        lon = -180.0
 
     return lon
 
 
 def _split_polygon(
     polygon: Polygon,
-    line: LineString
+    line: LineString,
 ) -> List[Polygon]:
     split_collection = shapely.ops.split(polygon, line)
 
