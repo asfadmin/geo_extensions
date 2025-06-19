@@ -96,7 +96,7 @@ def test_split_polygon_on_antimeridian_ccw_returns_ccw(polygon):
     polygon=strategies.rectangles(
         # Very small polygons near the antimeridian will be culled.
         lons=st.floats(min_value=-179.990, max_value=180),
-    )
+    ),
 )
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
 def test_split_polygon_on_antimeridian_ccw_returns_non_empty_list(polygon):
@@ -107,7 +107,7 @@ def test_split_polygon_on_antimeridian_ccw_returns_empty_list():
     # There is a case where the input polygon is really small, and both split
     # parts are culled.
     polygon = Polygon([
-        (180, 1), (180, 0), (-179.999, 0), (-179.999, 1), (180, 1)
+        (180, 1), (180, 0), (-179.999, 0), (-179.999, 1), (180, 1),
     ])
     assert list(split_polygon_on_antimeridian_ccw(polygon)) == []
 
@@ -180,7 +180,7 @@ def test_split_polygon_on_antimeridian_ccw_west():
     """Polygon is mostly west of the IDL"""
     polygon = Polygon([
         (170., 70.), (170., 60.), (-179., 60.),
-        (-179., 70.), (170., 70.)
+        (-179., 70.), (170., 70.),
     ])
     assert not polygon.exterior.is_ccw
     polygons = list(split_polygon_on_antimeridian_ccw(polygon))
@@ -211,7 +211,7 @@ def test_split_polygon_on_antimeridian_ccw_east():
     """Polygon is mostly east of the IDL"""
     polygon = Polygon([
         (179., 70.), (179., 60.), (-170., 60.),
-        (-170., 70.), (179., 70.)
+        (-170., 70.), (179., 70.),
     ])
     assert not polygon.exterior.is_ccw
     polygons = list(split_polygon_on_antimeridian_ccw(polygon))
@@ -243,7 +243,7 @@ def test_split_polygon_on_antimeridian_ccw_close_point():
     polygon = Polygon([
         (179.999999, 70.),
         (179., 60.), (-170., 60.),
-        (-170., 70.), (179., 70.)
+        (-170., 70.), (179., 70.),
     ])
     assert not polygon.exterior.is_ccw
     polygons = list(split_polygon_on_antimeridian_ccw(polygon))

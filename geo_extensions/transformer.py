@@ -46,7 +46,7 @@ class Transformer:
             _apply_transformations(
                 polygons,
                 tuple(self.transformations),
-            )
+            ),
         )
 
 
