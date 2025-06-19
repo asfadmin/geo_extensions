@@ -2,6 +2,9 @@ name: Lint
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   flake8:
     runs-on: ubuntu-latest
@@ -9,10 +12,34 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - uses: TrueBrain/actions-flake8@v2
         with:
           flake8_version: 6.0.0
           max_line_length: 120
-          plugins: flake8-isort==6.0.0 flake8-quotes==3.3.2
+          plugins: flake8-isort==6.1.2 flake8-quotes==3.4.0 flake8-commas==4.0.0
+
+  mypy:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: 3.9
+
+        - run: |
+            pip install poetry
+            poetry install --with=mypy
+
+        - run: |
+            poetry run mypy \
+              --follow-untyped-imports \
+              --disallow-any-unimported \
+              --disallow-untyped-defs \
+              --check-untyped-defs \
+              --strict-equality \
+              --warn-redundant-casts \
+              --warn-unused-ignores \
+              geo_extensions

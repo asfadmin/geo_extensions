@@ -12,12 +12,17 @@ readme = "README.md"
 packages = [{include = "geo_extensions"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
+
 shapely = "^2.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.1"
 hypothesis = "^6.98.8"
+
+[tool.poetry.group.mypy.dependencies]
+mypy = "^1.16.1"
+types-shapely = "^2.0.3"
 
 [tool.isort]
 profile = "black"

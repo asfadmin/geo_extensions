@@ -12,7 +12,7 @@ functions. A transformation function is any function with the following
 signature:
 
 ```python
-def transformation(polygon: Polygon) -> Generator[Polygon, None, None]:
+def transformation(polygon: Polygon) -> Generator[Polygon]:
     ...
 ```
 

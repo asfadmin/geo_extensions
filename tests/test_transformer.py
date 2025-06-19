@@ -24,7 +24,7 @@ def test_from_wkt(simplify_transformer):
             (51.0, 21.0),
             (51.0, 20.0),
             (50.0, 20.0),
-        ])
+        ]),
     ]
     assert simplify_transformer.from_wkt(
         "POLYGON(( 1 1, 2 1, 1 2, 1 1))",
@@ -34,7 +34,7 @@ def test_from_wkt(simplify_transformer):
             (2, 1),
             (1, 2),
             (1, 1),
-        ])
+        ]),
     ]
     # Duplicate point is removed
     assert simplify_transformer.from_wkt(
@@ -46,14 +46,14 @@ def test_from_wkt(simplify_transformer):
             (51.0, 21.0),
             (51.0, 20.0),
             (50.0, 20.0),
-        ])
+        ]),
     ]
 
 
 def test_from_wkt_multipolygon(simplify_transformer):
     assert simplify_transformer.from_wkt(
         "MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)),"
-        "((15 5, 40 10, 10 20, 5 10, 15 5)))"
+        "((15 5, 40 10, 10 20, 5 10, 15 5)))",
     ) == [
         Polygon([
             (30.0, 20.0),
