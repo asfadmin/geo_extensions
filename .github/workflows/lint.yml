@@ -16,3 +16,27 @@ jobs:
           flake8_version: 6.0.0
           max_line_length: 120
           plugins: flake8-isort==6.0.0 flake8-quotes==3.3.2
+
+  mypy:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: 3.9
+
+        - run: |
+            pip install poetry
+            poetry install --with=mypy
+
+        - run: |
+            poetry run mypy \
+              --follow-untyped-imports \
+              --disallow-any-unimported \
+              --disallow-untyped-defs \
+              --check-untyped-defs \
+              --strict-equality \
+              --warn-redundant-casts \
+              --warn-unused-ignores \
+              geo_extensions

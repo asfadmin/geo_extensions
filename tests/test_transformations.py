@@ -6,9 +6,52 @@ from shapely.geometry import Polygon
 
 from geo_extensions.transformations import (
     drop_z_coordinate,
+    simplify_polygon,
     split_polygon_on_antimeridian_ccw,
     split_polygon_on_antimeridian_fixed_size,
 )
+
+
+def test_simplify():
+    polygon = Polygon([
+        (20, 0),
+        (20, 0),
+        (20, 10),
+        (0, 10),
+        (0, 0),
+        (20, 0),
+    ])
+    assert list(simplify_polygon(0.01)(polygon)) == [
+        Polygon([
+            (20, 0),
+            (20, 10),
+            (0, 10),
+            (0, 0),
+            (20, 0),
+        ]),
+    ]
+
+
+def test_simplify_line():
+    polygon = Polygon([
+        (20, 0),
+        (20, 10),
+        (20, 10),
+        (20, 0),
+        (20, 0),
+    ])
+    assert list(simplify_polygon(0.01)(polygon)) == [
+        Polygon([
+            (20, 0),
+            (20, 10),
+            (20, 10),
+            (20, 0),
+        ]),
+    ]
+
+    assert list(simplify_polygon(0.01, preserve_topology=False)(polygon)) == [
+        Polygon([]),
+    ]
 
 
 def test_drop_z_coordinate():
@@ -26,7 +69,7 @@ def test_drop_z_coordinate():
             (-179.999, 0),
             (-179.999, 1),
             (180, 1),
-        ])
+        ]),
     ]
 
 

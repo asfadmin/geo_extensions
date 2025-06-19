@@ -38,6 +38,8 @@ even in the general case, because such a polygon will appear to be clockwise
 ordered in the shapely flat space.
 """
 
+from typing import cast
+
 import shapely.ops
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
@@ -61,7 +63,9 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
     """
     def simplify(polygon: Polygon) -> TransformationResult:
         """Perform a shapely simplify operation on the polygon."""
-        yield polygon.simplify(tolerance, preserve_topology)
+        # NOTE(reweeden): I have been unable to produce a situation where a
+        # polygon is simplified to a geometry other than Polygon.
+        yield cast(Polygon, polygon.simplify(tolerance, preserve_topology))
 
     return simplify
 
@@ -137,7 +141,7 @@ def _shift_polygon(polygon: Polygon) -> Polygon:
 
     return Polygon([
         ((360.0 + lon) % 360, lat)
-        for lon, lat in polygon.boundary.coords
+        for lon, lat in polygon.exterior.coords
     ])
 
 
@@ -147,7 +151,7 @@ def _shift_polygon_back(polygon: Polygon) -> Polygon:
     _, _, max_lon, _ = polygon.bounds
     return Polygon([
         (_adjust_lon(lon, max_lon), lat)
-        for lon, lat in polygon.boundary.coords
+        for lon, lat in polygon.exterior.coords
     ])
 
 
@@ -163,13 +167,13 @@ def _adjust_lon(lon: float, max_lon: float) -> float:
 def _split_polygon(
     polygon: Polygon,
     line: LineString,
-) -> List[Polygon]:
+) -> list[Polygon]:
     split_collection = shapely.ops.split(polygon, line)
 
     return [
-        orient(poly)
-        for poly in split_collection.geoms
-        if not _ignore_polygon(poly)
+        orient(geom)
+        for geom in split_collection.geoms
+        if isinstance(geom, Polygon) and not _ignore_polygon(geom)
     ]
 
 
