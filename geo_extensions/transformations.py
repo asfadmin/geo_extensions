@@ -38,8 +38,6 @@ even in the general case, because such a polygon will appear to be clockwise
 ordered in the shapely flat space.
 """
 
-from typing import List, Tuple
-
 import shapely.ops
 from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
@@ -50,8 +48,8 @@ from geo_extensions.checks import (
 )
 from geo_extensions.types import Transformation, TransformationResult
 
-Point = Tuple[float, float]
-Bbox = List[Point]
+Point = tuple[float, float]
+Bbox = list[Point]
 
 ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 

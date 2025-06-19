@@ -1,4 +1,4 @@
-from typing import Iterable, List, Sequence, Tuple
+from collections.abc import Iterable, Sequence
 
 from shapely import Geometry, wkt
 from shapely.geometry import MultiPolygon, Polygon, shape
@@ -12,7 +12,7 @@ class Transformer:
     def __init__(self, transformations: Sequence[Transformation]):
         self.transformations = transformations
 
-    def from_geo_json(self, geo_json: dict) -> List[Polygon]:
+    def from_geo_json(self, geo_json: dict) -> list[Polygon]:
         """Load and transform an object from a GeoJSON dict.
 
         :returns: a list of transformed polygons
@@ -24,7 +24,7 @@ class Transformer:
 
         return self.transform(polygons)
 
-    def from_wkt(self, wkt_str: str) -> List[Polygon]:
+    def from_wkt(self, wkt_str: str) -> list[Polygon]:
         """Load and transform an object from a WKT string.
 
         :returns: a list of transformed polygons
@@ -36,7 +36,7 @@ class Transformer:
 
         return self.transform(polygons)
 
-    def transform(self, polygons: Iterable[Polygon]) -> List[Polygon]:
+    def transform(self, polygons: Iterable[Polygon]) -> list[Polygon]:
         """Perform the transformation chain on a sequence of polygons.
 
         :returns: a list of transformed polygons
@@ -70,7 +70,7 @@ def to_polygons(obj: Geometry) -> TransformationResult:
 
 def _apply_transformations(
     polygons: Iterable[Polygon],
-    transformations: Tuple[Transformation, ...],
+    transformations: tuple[Transformation, ...],
 ) -> TransformationResult:
     if not transformations:
         yield from polygons
