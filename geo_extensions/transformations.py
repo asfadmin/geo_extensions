@@ -135,7 +135,7 @@ def split_polygon_on_antimeridian_fixed_size(
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
-    """Shift into 0-360 range."""
+    """Shift into [0, 360) range."""
 
     return Polygon([
         ((360.0 + lon) % 360, lat)
@@ -144,7 +144,7 @@ def _shift_polygon(polygon: Polygon) -> Polygon:
 
 
 def _shift_polygon_back(polygon: Polygon) -> Polygon:
-    """Shift back to -180-180 range."""
+    """Shift back to [-180, 180] range."""
 
     _, _, max_lon, _ = polygon.bounds
     return Polygon([
