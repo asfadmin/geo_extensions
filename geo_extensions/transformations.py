@@ -65,7 +65,13 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
         """Perform a shapely simplify operation on the polygon."""
         # NOTE(reweeden): I have been unable to produce a situation where a
         # polygon is simplified to a geometry other than Polygon.
-        yield cast(Polygon, polygon.simplify(tolerance, preserve_topology))
+        yield cast(
+            Polygon,
+            polygon.simplify(
+                tolerance,
+                preserve_topology=preserve_topology,
+            ),
+        )
 
     return simplify
 
