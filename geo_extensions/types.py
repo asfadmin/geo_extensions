@@ -1,6 +1,6 @@
-from typing import Callable, Generator
+from collections.abc import Callable, Generator
 
 from shapely.geometry import Polygon
 
-TransformationResult = Generator[Polygon, None, None]
+TransformationResult = Generator[Polygon]
 Transformation = Callable[[Polygon], TransformationResult]
