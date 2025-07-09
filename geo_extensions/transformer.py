@@ -82,3 +82,5 @@ def _apply_transformations(
             transformation(polygon),
             transformations,
         )
+
+print()
