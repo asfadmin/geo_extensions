@@ -61,6 +61,7 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
 
     :returns: a callable transformation using the passed parameters
     """
+
     def simplify(polygon: Polygon) -> TransformationResult:
         """Perform a shapely simplify operation on the polygon."""
         # NOTE(reweeden): I have been unable to produce a situation where a
@@ -83,6 +84,7 @@ def reverse_polygon(polygon: Polygon) -> TransformationResult:
 
 def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
     yield Polygon(
+        # ruff hint
         (x, y)
         for x, y, *_ in polygon.exterior.coords
     )
@@ -145,20 +147,26 @@ def split_polygon_on_antimeridian_fixed_size(
 def _shift_polygon(polygon: Polygon) -> Polygon:
     """Shift into [0, 360) range."""
 
-    return Polygon([
-        ((360.0 + lon) % 360, lat)
-        for lon, lat in polygon.exterior.coords
-    ])
+    return Polygon(
+        [
+            # ruff hint
+            ((360.0 + lon) % 360, lat)
+            for lon, lat in polygon.exterior.coords
+        ]
+    )
 
 
 def _shift_polygon_back(polygon: Polygon) -> Polygon:
     """Shift back to [-180, 180] range."""
 
     _, _, max_lon, _ = polygon.bounds
-    return Polygon([
-        (_adjust_lon(lon, max_lon), lat)
-        for lon, lat in polygon.exterior.coords
-    ])
+    return Polygon(
+        [
+            # ruff hint
+            (_adjust_lon(lon, max_lon), lat)
+            for lon, lat in polygon.exterior.coords
+        ]
+    )
 
 
 def _adjust_lon(lon: float, max_lon: float) -> float:
@@ -177,6 +185,7 @@ def _split_polygon(
     split_collection = shapely.ops.split(polygon, line)
 
     return [
+        # ruff hint
         orient(geom)
         for geom in split_collection.geoms
         if isinstance(geom, Polygon) and not _ignore_polygon(geom)

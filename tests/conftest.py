@@ -12,10 +12,15 @@ def data_path():
 @pytest.fixture
 def rectangle():
     """A rectanglular polygon"""
-    polygon = Polygon([
-        (160., 60.), (170., 60.),
-        (170., 70.), (160., 70.), (160., 60.),
-    ])
+    polygon = Polygon(
+        [
+            (160.0, 60.0),
+            (170.0, 60.0),
+            (170.0, 70.0),
+            (160.0, 70.0),
+            (160.0, 60.0),
+        ]
+    )
     assert polygon.exterior.is_ccw
     assert polygon.exterior.is_valid
 
@@ -25,10 +30,15 @@ def rectangle():
 @pytest.fixture
 def centered_rectangle():
     """A rectanglular polygon centered at 0, 0"""
-    polygon = Polygon([
-        (-30., 10.), (-30., -10.),
-        (30., -10.), (30., 10.), (-30., 10.),
-    ])
+    polygon = Polygon(
+        [
+            (-30.0, 10.0),
+            (-30.0, -10.0),
+            (30.0, -10.0),
+            (30.0, 10.0),
+            (-30.0, 10.0),
+        ]
+    )
     assert polygon.exterior.is_ccw
     assert polygon.exterior.is_valid
 
@@ -38,10 +48,15 @@ def centered_rectangle():
 @pytest.fixture
 def antimeridian_centered_rectangle():
     """A rectanglular polygon centered over the antimeridian"""
-    polygon = Polygon([
-        (150., 10.), (150., -10.),
-        (-150., -10.), (-150., 10.), (150., 10.),
-    ])
+    polygon = Polygon(
+        [
+            (150.0, 10.0),
+            (150.0, -10.0),
+            (-150.0, -10.0),
+            (-150.0, 10.0),
+            (150.0, 10.0),
+        ]
+    )
     assert not polygon.exterior.is_ccw
     assert polygon.exterior.is_valid
 
@@ -57,10 +72,16 @@ def multi_crossing_polygon():
         |      \
         --------
     """
-    polygon = Polygon([
-        (150., -10.), (-150., -10.), (160., 0.),
-        (-150., 10.), (150., 10.), (150., -10.),
-    ])
+    polygon = Polygon(
+        [
+            (150.0, -10.0),
+            (-150.0, -10.0),
+            (160.0, 0.0),
+            (-150.0, 10.0),
+            (150.0, 10.0),
+            (150.0, -10.0),
+        ]
+    )
     assert not polygon.exterior.is_ccw
     assert not polygon.exterior.is_valid
 
