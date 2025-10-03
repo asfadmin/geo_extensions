@@ -17,10 +17,17 @@ def test_polygon_crosses_antimeridian_ccw_tricky():
         /      \
         --------
     """
-    polygon = Polygon([
-        (-30., 10.), (-10., 0.), (-30., -10.),
-        (30., -10.), (10., 0.), (30., 10.), (-30., 10.),
-    ])
+    polygon = Polygon(
+        [
+            (-30.0, 10.0),
+            (-10.0, 0.0),
+            (-30.0, -10.0),
+            (30.0, -10.0),
+            (10.0, 0.0),
+            (30.0, 10.0),
+            (-30.0, 10.0),
+        ]
+    )
     assert polygon_crosses_antimeridian_ccw(polygon) is False
 
 
@@ -31,10 +38,17 @@ def test_polygon_crosses_antimeridian_ccw_tricky_crosses():
         /      \
         --------
     """
-    polygon = Polygon([
-        (150., 10.), (170., 0.), (150., -10.),
-        (-150., 10.), (-170., 0.), (-150., -10.), (150., 10.),
-    ])
+    polygon = Polygon(
+        [
+            (150.0, 10.0),
+            (170.0, 0.0),
+            (150.0, -10.0),
+            (-150.0, 10.0),
+            (-170.0, 0.0),
+            (-150.0, -10.0),
+            (150.0, 10.0),
+        ]
+    )
     assert polygon_crosses_antimeridian_ccw(polygon) is True
 
 
@@ -50,12 +64,14 @@ def test_polygon_crosses_antimeridian_ccw_alos2_antarctica():
 
     ALOS2 granule: ALOS2075945400-151019-WBDR1.1__D
     """
-    polygon = Polygon([
-        (-178.328, -79.438),
-        (179.625, -76.163),
-        (166.084, -76.163),
-        (164.037, -79.438),
-    ])
+    polygon = Polygon(
+        [
+            (-178.328, -79.438),
+            (179.625, -76.163),
+            (166.084, -76.163),
+            (164.037, -79.438),
+        ]
+    )
 
     assert polygon_crosses_antimeridian_ccw(polygon) is True
 
@@ -72,10 +88,17 @@ def test_polygon_crosses_antimeridian_fixed_size_tricky_crosses():
         /      \
         --------
     """
-    polygon = Polygon([
-        (150., 10.), (170., 0.), (150., -10.),
-        (-150., 10.), (-170., 0.), (-150., -10.), (150., 10.),
-    ])
+    polygon = Polygon(
+        [
+            (150.0, 10.0),
+            (170.0, 0.0),
+            (150.0, -10.0),
+            (-150.0, 10.0),
+            (-170.0, 0.0),
+            (-150.0, -10.0),
+            (150.0, 10.0),
+        ]
+    )
     assert polygon_crosses_antimeridian_fixed_size(polygon, 30) is True
 
 
@@ -83,8 +106,13 @@ def test_polygon_crosses_antimeridian_fixed_size_antarctica():
     r"""A real polygon from ALOS2 granule ALOS2014555550-140830 which is located
     close to the south pole, and also crosses the antimeridian
     """
-    polygon = Polygon([
-        (-164.198, -82.125), (172.437, -83.885), (165.618, -80.869),
-        (-176.331, -79.578), (-164.198, -82.125),
-    ])
+    polygon = Polygon(
+        [
+            (-164.198, -82.125),
+            (172.437, -83.885),
+            (165.618, -80.869),
+            (-176.331, -79.578),
+            (-164.198, -82.125),
+        ]
+    )
     assert polygon_crosses_antimeridian_fixed_size(polygon, 40) is True

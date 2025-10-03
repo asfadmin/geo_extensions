@@ -20,26 +20,36 @@ jobs:
           max_line_length: 120
           plugins: flake8-isort==6.1.2 flake8-quotes==3.4.0 flake8-commas==4.0.0
 
+  ruff-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          version: "~=0.13.3"
+          args: format --check --diff --output-format=github
+
   mypy:
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: 3.9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
 
-        - run: |
-            pip install poetry
-            poetry install --with=mypy
+      - run: |
+          pip install poetry
+          poetry install --with=mypy
 
-        - run: |
-            poetry run mypy \
-              --follow-untyped-imports \
-              --disallow-any-unimported \
-              --disallow-untyped-defs \
-              --check-untyped-defs \
-              --strict-equality \
-              --warn-redundant-casts \
-              --warn-unused-ignores \
-              geo_extensions
+      - run: |
+          poetry run mypy \
+            --follow-untyped-imports \
+            --disallow-any-unimported \
+            --disallow-untyped-defs \
+            --check-untyped-defs \
+            --strict-equality \
+            --warn-redundant-casts \
+            --warn-unused-ignores \
+            geo_extensions
