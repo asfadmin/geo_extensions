@@ -31,25 +31,25 @@ jobs:
           args: format --check --diff --output-format=github
 
   mypy:
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: 3.9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
 
-        - run: |
-            pip install poetry
-            poetry install --with=mypy
+      - run: |
+          pip install poetry
+          poetry install --with=mypy
 
-        - run: |
-            poetry run mypy \
-              --follow-untyped-imports \
-              --disallow-any-unimported \
-              --disallow-untyped-defs \
-              --check-untyped-defs \
-              --strict-equality \
-              --warn-redundant-casts \
-              --warn-unused-ignores \
-              geo_extensions
+      - run: |
+          poetry run mypy \
+            --follow-untyped-imports \
+            --disallow-any-unimported \
+            --disallow-untyped-defs \
+            --check-untyped-defs \
+            --strict-equality \
+            --warn-redundant-casts \
+            --warn-unused-ignores \
+            geo_extensions
