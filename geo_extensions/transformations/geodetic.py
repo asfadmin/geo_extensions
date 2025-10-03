@@ -49,6 +49,7 @@ def densify_polygon(tolerance_meters: float) -> Transformation:
         yield Polygon(
             shell=_densify_ring(polygon.exterior.coords, tolerance_meters),
             holes=[
+                # ruff hint
                 _densify_ring(interior.coords, tolerance_meters)
                 for interior in polygon.interiors
             ],
