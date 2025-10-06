@@ -13,14 +13,7 @@ from geo_extensions.transformations import (
 from geo_extensions.transformer import Transformer, to_polygons
 from geo_extensions.types import Transformation, TransformationResult
 
-default_transformer = Transformer([
-    simplify_polygon(0.1),
-    split_polygon_on_antimeridian_ccw,
-])
-
-
 __all__ = (
-    "default_transformer",
     "densify_polygon",
     "drop_z_coordinate",
     "polygon_crosses_antimeridian_ccw",

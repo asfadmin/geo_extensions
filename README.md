@@ -47,15 +47,3 @@ final_polygons = transformer.transform([
     ])
 ])
 ```
-
-The default transformer performs some standard transformations that are usually
-needed. Check the definition for what those transformations are.
-
-```python
-from geo_extensions import default_transformer
-
-
-WKT = "MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)), ((15 5, 40 10, 10 20, 5 10, 15 5)))"
-
-polygons = default_transformer.from_wkt(WKT)
-```
