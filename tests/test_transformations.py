@@ -1,3 +1,4 @@
+import pytest
 import shapely.geometry
 import strategies
 from hypothesis import HealthCheck, given, settings
@@ -5,6 +6,7 @@ from hypothesis import strategies as st
 from shapely.geometry import Polygon
 
 from geo_extensions.transformations import (
+    densify_polygon,
     drop_z_coordinate,
     simplify_polygon,
     split_polygon_on_antimeridian_ccw,
@@ -52,6 +54,98 @@ def test_simplify_line():
     assert list(simplify_polygon(0.01, preserve_topology=False)(polygon)) == [
         Polygon([]),
     ]
+
+
+def test_densify():
+    polygon = Polygon([
+        (50, 70),
+        (50, 80),
+        (0, 80),
+        (0, 70),
+        (50, 70),
+    ])
+
+    assert list(densify_polygon(500000)(polygon)) == [
+        Polygon([
+            (50, 70),
+            (50, 73.33333333333333),
+            (50, 76.66666666666667),
+            (50, 80),
+            (25, 80.92053252671789),
+            (0, 80),
+            (0, 76.66666666666667),
+            (0, 73.33333333333333),
+            (0, 70),
+            (11.94262888488008, 71.29264444333815),
+            (24.999999999999996, 71.7438759890997),
+            (38.05737111511993, 71.29264444333815),
+            (50, 70),
+        ]),
+    ]
+
+
+def test_densify_with_holes():
+    polygon = Polygon(
+        shell=[
+            (50, 70),
+            (50, 80),
+            (0, 80),
+            (0, 70),
+            (50, 70),
+        ],
+        holes=[
+            [
+                (45, 72),
+                (45, 78),
+                (5, 78),
+                (5, 72),
+                (45, 72),
+            ],
+        ],
+    )
+
+    assert list(densify_polygon(500000)(polygon)) == [
+        Polygon(
+            shell=[
+                (50, 70),
+                (50, 73.33333333333333),
+                (50, 76.66666666666667),
+                (50, 80),
+                (25, 80.92053252671789),
+                (0, 80),
+                (0, 76.66666666666667),
+                (0, 73.33333333333333),
+                (0, 70),
+                (11.94262888488008, 71.29264444333815),
+                (24.999999999999996, 71.7438759890997),
+                (38.05737111511993, 71.29264444333815),
+                (50, 70),
+            ],
+            holes=[
+                [
+                    (45, 72),
+                    (45, 75),
+                    (45, 78),
+                    (25, 78.70451161084236),
+                    (5, 78),
+                    (4.999999999999999, 75),
+                    (5, 72),
+                    (18.1052765936037, 72.90478732278757),
+                    (31.894723406396295, 72.90478732278757),
+                    (45, 72),
+                ],
+            ],
+        ),
+    ]
+
+
+def test_densify_incomplete():
+    assert list(densify_polygon(500000)(Polygon())) == [Polygon()]
+
+
+def test_densify_error():
+    with pytest.raises(ValueError, match="must be greater than 0"):
+        densify_polygon(0)
 
 
 def test_drop_z_coordinate():
