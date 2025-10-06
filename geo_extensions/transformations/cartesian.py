@@ -1,41 +1,14 @@
-"""Geospatial helpers to prepare spatial extents for submission to CMR.
+"""Geospatial helpers for working in a cartesian coordinate system.
 
-CMR has the following constraints on spatial extents:
-    - The implemented Geodetic model uses the great circle distance to connect
-        two vertices for constructing a polygon area or line. If there is not
-        enough density (that is, the number of points) for a set of vertices,
-        then the line or the polygon area might be misinterpreted or the
-        metadata might be considered invalid.
-    - Any single spatial area may cross the International Date Line and/or Poles
-    - Any single spatial area may not cover more than one half of the earth.
+CMR has the following constraints for cartesian polygons:
+    - Any single spatial area may not cross the International Date Line (unless
+        it is a bounding box) or Poles.
+    - Two vertices will be connected with a straight line.
 
-Taken from: https://wiki.earthdata.nasa.gov/pages/viewpage.action?spaceKey=CMR&title=CMR+Data+Partner+User+Guide
+Taken from: <https://wiki.earthdata.nasa.gov/spaces/CMR/pages/50036858/
+CMR+Data+Partner+User+Guide#CMRDataPartnerUserGuide-CartesianCoordinateSystem>
 
-There are also additional constraints that depend on the data format being used.
-For UMM-G polygons must
-    - Be counter clockwise ordered
-    - Include closure points
-
-A table describing the differences between data format requirements can be found here:
-https://wiki.earthdata.nasa.gov/display/CMR/Polygon+Support+in+CMR+Search+and+Ingest+Interfaces
-
-There are several challenges with representing polygons on a spherical surface,
-the primary being that since all straight lines will 'wrap around' the surface,
-it becomes impossible to unabmiguously define a polygon using only an ordered
-set of points. This is the primary reason for the CMR requirements, as those
-additional constraints make it possible to determine exactly which area is
-meant by a set of points. Unfortunately, the polygons that we get from the data
-provider won't necessarily meet those same requirements and we must use mission
-specific knowledge to convert them to an unambiguous set of polygons to be used
-by CMR.
-
-This module aims to assist in that conversion to unambiguous polygons using the
-CMR additional requirements. Any polygons passed in as arguments or returned
-from functions in this module are assumed to be in counter clockwise order as
-seen in the spherical space. This makes detecting whether a polygon crosses the
-antimeridian (wraps around the edge of the flat coordinate system) very easy
-even in the general case, because such a polygon will appear to be clockwise
-ordered in the shapely flat space.
+This module contains helpers to fulfill the cartesian system CMR requirements.
 """
 
 from typing import cast
@@ -50,17 +23,15 @@ from geo_extensions.checks import (
 )
 from geo_extensions.types import Transformation, TransformationResult
 
-Point = tuple[float, float]
-Bbox = list[Point]
-
 ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 
 
 def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transformation:
-    """Create a transformation that calls polygon.simplify.
+    """CARTESIAN: Create a transformation that calls polygon.simplify.
 
     :returns: a callable transformation using the passed parameters
     """
+
     def simplify(polygon: Polygon) -> TransformationResult:
         """Perform a shapely simplify operation on the polygon."""
         # NOTE(reweeden): I have been unable to produce a situation where a
@@ -76,21 +47,9 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
     return simplify
 
 
-def reverse_polygon(polygon: Polygon) -> TransformationResult:
-    """Perform a shapely reverse operation on the polygon."""
-    yield polygon.reverse()
-
-
-def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
-    yield Polygon(
-        (x, y)
-        for x, y, *_ in polygon.exterior.coords
-    )
-
-
 def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
-    """Perform adjustment when the polygon crosses the antimeridian and is known
-    to be wound in counter clockwise order.
+    """CARTESIAN: Perform adjustment when the polygon crosses the antimeridian
+    and is known to be wound in counter clockwise order.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
     being interpreted as wrapping the long way around the Earth.
@@ -116,8 +75,8 @@ def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
 def split_polygon_on_antimeridian_fixed_size(
     min_lon_extent: float,
 ) -> Transformation:
-    """Perform adjustment when the polygon crosses the antimeridian using a
-    heuristic to determine if the polygon needs to be split.
+    """CARTESIAN: Perform adjustment when the polygon crosses the antimeridian
+    using a heuristic to determine if the polygon needs to be split.
 
     CMR requires the polygon to be split into two separate polygons to avoid it
     being interpreted as wrapping the long way around the Earth.
