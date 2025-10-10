@@ -58,28 +58,22 @@ def test_simplify_line():
 
 def test_densify():
     polygon = Polygon([
-        (50, 70),
-        (50, 80),
-        (0, 80),
-        (0, 70),
-        (50, 70),
+        (50, 75),
+        (10, 80),
+        (0, 77),
+        (40, 70),
+        (50, 75),
     ])
 
-    assert list(densify_polygon(500000)(polygon)) == [
+    assert list(densify_polygon(50_000)(polygon)) == [
         Polygon([
-            (50, 70),
-            (50, 73.33333333333333),
-            (50, 76.66666666666667),
-            (50, 80),
-            (25, 80.92053252671789),
-            (0, 80),
-            (0, 76.66666666666667),
-            (0, 73.33333333333333),
-            (0, 70),
-            (11.94262888488008, 71.29264444333815),
-            (24.999999999999996, 71.7438759890997),
-            (38.05737111511993, 71.29264444333815),
-            (50, 70),
+            (50, 75),
+            (34.100003241169595, 78.2028289318241),
+            (10, 80),
+            (0, 77),
+            (24.297878219303588, 74.40374356383884),
+            (40, 70),
+            (50, 75),
         ]),
     ]
 
@@ -104,34 +98,25 @@ def test_densify_with_holes():
         ],
     )
 
-    assert list(densify_polygon(500000)(polygon)) == [
+    assert list(densify_polygon(50_000)(polygon)) == [
         Polygon(
             shell=[
                 (50, 70),
-                (50, 73.33333333333333),
-                (50, 76.66666666666667),
                 (50, 80),
-                (25, 80.92053252671789),
+                (24.999999999999996, 80.92053252671789),
                 (0, 80),
-                (0, 76.66666666666667),
-                (0, 73.33333333333333),
                 (0, 70),
-                (11.94262888488008, 71.29264444333815),
-                (24.999999999999996, 71.7438759890997),
-                (38.05737111511993, 71.29264444333815),
+                (25, 71.7438759890997),
                 (50, 70),
             ],
             holes=[
                 [
                     (45, 72),
-                    (45, 75),
                     (45, 78),
                     (25, 78.70451161084236),
                     (5, 78),
-                    (4.999999999999999, 75),
                     (5, 72),
-                    (18.1052765936037, 72.90478732278757),
-                    (31.894723406396295, 72.90478732278757),
+                    (25, 73.02127815507072),
                     (45, 72),
                 ],
             ],
@@ -139,8 +124,29 @@ def test_densify_with_holes():
     ]
 
 
+def test_densify_idempotent():
+    polygon = Polygon([
+        (50, 75),
+        (10, 80),
+        (0, 77),
+        (40, 70),
+        (50, 75),
+    ])
+
+    transformation = densify_polygon(50_000)
+
+    densified_polygons = list(transformation(polygon))
+    double_densified_polygons = [
+        poly
+        for densified_polygon in densified_polygons
+        for poly in transformation(densified_polygon)
+    ]
+
+    assert densified_polygons == double_densified_polygons
+
+
 def test_densify_incomplete():
-    assert list(densify_polygon(500000)(Polygon())) == [Polygon()]
+    assert list(densify_polygon(50_000)(Polygon())) == [Polygon()]
 
 
 def test_densify_error():
