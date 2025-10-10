@@ -16,9 +16,8 @@ This module contains helpers to fulfill the geodetic system CMR requirements.
 """
 
 import itertools
-import math
 from collections.abc import Generator
-from typing import TypeVar, cast
+from typing import TypeVar
 
 from pygeodesy.sphericalTrigonometry import LatLon
 from shapely.coords import CoordinateSequence
@@ -29,27 +28,28 @@ from geo_extensions.types import Transformation, TransformationResult
 T = TypeVar("T")
 
 
-def densify_polygon(max_edge_len_meters: float) -> Transformation:
+def densify_polygon(tolerance_meters: float) -> Transformation:
     """GEODETIC: Create a transformation that increases the point density of a
     polygon along great circle arcs between each point.
 
     In a sense, this is an opposite operation from 'simplify'.
 
-    :param max_edge_len_meters: The maximum desired length for any line segment.
-        Must be greater than 0.
+    :param tolerance_meters: The maximum allowable cross track error between
+        a line segment when interpreted as a cartesian point. Must be greater
+        than 0.
     :returns: a callable transformation using the passed parameters
     """
-    if max_edge_len_meters <= 0:
-        raise ValueError("'max_edge_len_meters' must be greater than 0")
+    if tolerance_meters <= 0:
+        raise ValueError("'tolerance_meters' must be greater than 0")
 
     def densify(polygon: Polygon) -> TransformationResult:
         """Densify the polygon by adding additional points along the great
         circle arcs between the existing points.
         """
         yield Polygon(
-            shell=_densify_ring(polygon.exterior.coords, max_edge_len_meters),
+            shell=_densify_ring(polygon.exterior.coords, tolerance_meters),
             holes=[
-                _densify_ring(interior.coords, max_edge_len_meters)
+                _densify_ring(interior.coords, tolerance_meters)
                 for interior in polygon.interiors
             ],
         )
@@ -59,9 +59,9 @@ def densify_polygon(max_edge_len_meters: float) -> Transformation:
 
 def _densify_ring(
     coords: CoordinateSequence,
-    max_edge_len_meters: float,
+    tolerance_meters: float,
 ) -> Generator[tuple[float, ...]]:
-    assert max_edge_len_meters > 0
+    assert tolerance_meters > 0
 
     if len(coords) < 2:
         yield from coords
@@ -73,24 +73,26 @@ def _densify_ring(
 
         yield c1
 
-        distance = p1.distanceTo(p2)
-        if distance < max_edge_len_meters:
-            continue
-
-        segments_needed = math.ceil(distance / max_edge_len_meters)
-        points_needed = segments_needed - 1
-        fraction = 1 / segments_needed
-
-        # TODO(reweeden): Safeguard for low edge lengths that would generate
-        # 'absurdly large' amounts of points?
-        for i in range(points_needed):
-            p_new = cast(
-                LatLon,
-                p1.intermediateTo(p2, fraction=fraction * (i + 1)),
-            )
+        for p_new in _densify_edge(p1, p2, tolerance_meters):
             yield (p_new.lon, p_new.lat)
 
     yield c2
+
+
+def _densify_edge(p1: LatLon, p2: LatLon, tolerance_meters: float) -> Generator[LatLon]:
+    # Cartesian midpoint
+    c_mid_cartesian = ((p1.lon + p2.lon) / 2, (p1.lat + p2.lat) / 2)
+    p_mid_cartesian = _shapely_to_pygeodesy(c_mid_cartesian)
+
+    error_meters = abs(p_mid_cartesian.crossTrackDistanceTo(p1, p2))
+    if error_meters < tolerance_meters:
+        return
+
+    # Add a point in the middle and recursively densify the resulting edges
+    p_mid = p1.midpointTo(p2)
+    yield from _densify_edge(p1, p_mid, tolerance_meters)
+    yield p_mid
+    yield from _densify_edge(p_mid, p2, tolerance_meters)
 
 
 def _shapely_to_pygeodesy(coord: tuple[float, ...]) -> LatLon:
