@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "geo-extensions"
-version = "0.3.0"
+version = "0.3.1"
 description = ""
 authors = ["Rohan Weeden <reweeden@alaska.edu>"]
 license = "APACHE-2"
@@ -12,7 +12,7 @@ readme = "README.md"
 packages = [{include = "geo_extensions"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 shapely = "^2.0.3"
 
