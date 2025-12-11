@@ -12,7 +12,7 @@ readme = "README.md"
 packages = [{include = "geo_extensions"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 shapely = "^2.0.3"
 
