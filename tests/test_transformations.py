@@ -184,6 +184,37 @@ def test_drop_z_coordinate_noop():
     assert list(drop_z_coordinate(polygon)) == [polygon]
 
 
+def test_drop_z_coordinate_holes():
+    polygon = Polygon(
+        shell=[
+            (100, 10, 10),
+            (100, 0, 10),
+            (80, 0, 10),
+            (80, 10, 10),
+            (100, 10, 10),
+        ],
+        holes=[
+            [(93, 8, 10), (83, 8, 10), (83, 2, 10), (93, 8, 10)],
+            [(97, 2, 10), (97, 8, 10), (87, 2, 10), (97, 2, 10)],
+        ],
+    )
+    assert list(drop_z_coordinate(polygon)) == [
+        Polygon(
+            shell=[
+                (100, 10),
+                (100, 0),
+                (80, 0),
+                (80, 10),
+                (100, 10),
+            ],
+            holes=[
+                [(93, 8), (83, 8), (83, 2), (93, 8)],
+                [(97, 2), (97, 8), (87, 2), (97, 2)],
+            ],
+        ),
+    ]
+
+
 @given(polygon=strategies.rectangles())
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
 def test_split_polygon_on_antimeridian_ccw_returns_ccw(polygon):

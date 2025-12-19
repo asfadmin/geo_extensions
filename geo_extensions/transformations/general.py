@@ -15,6 +15,9 @@ def reverse_polygon(polygon: Polygon) -> TransformationResult:
 def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
     """Drop the third element from each coordinate in the polygon."""
     yield Polygon(
-        (x, y)
-        for x, y, *_ in polygon.exterior.coords
+        shell=((x, y) for x, y, *_ in polygon.exterior.coords),
+        holes=[
+            ((x, y) for x, y, *_ in interior.coords)
+            for interior in polygon.interiors
+        ],
     )
