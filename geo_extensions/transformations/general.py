@@ -17,6 +17,7 @@ def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
     yield Polygon(
         shell=((x, y) for x, y, *_ in polygon.exterior.coords),
         holes=[
+            # ruff hint
             ((x, y) for x, y, *_ in interior.coords)
             for interior in polygon.interiors
         ],
