@@ -29,11 +29,14 @@ ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transformation:
     """CARTESIAN: Create a transformation that calls polygon.simplify.
 
+    :param tolerance: coordinates of the simplified geometry will be no more
+        than the tolerance distance from the original
+    :param preserve_topology: unless the topology preserving option is used, the
+        algorithm may produce self-intersecting or otherwise invalid geometries
     :returns: a callable transformation using the passed parameters
     """
 
     def simplify_polygon_transform(polygon: Polygon) -> TransformationResult:
-        """Perform a shapely simplify operation on the polygon."""
         # NOTE(reweeden): I have been unable to produce a situation where a
         # polygon is simplified to a geometry other than Polygon.
         yield cast(

@@ -43,9 +43,6 @@ def densify_polygon(tolerance_meters: float) -> Transformation:
         raise ValueError("'tolerance_meters' must be greater than 0")
 
     def densify_polygon_transform(polygon: Polygon) -> TransformationResult:
-        """Densify the polygon by adding additional points along the great
-        circle arcs between the existing points.
-        """
         yield Polygon(
             shell=_densify_ring(polygon.exterior.coords, tolerance_meters),
             holes=[
