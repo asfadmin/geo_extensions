@@ -155,7 +155,7 @@ def _split_polygon(
 def _ignore_polygon(polygon: Polygon) -> bool:
     min_lon, _, max_lon, _ = polygon.bounds
     # We want to ignore any tiny slivers of polygons that might barely cross
-    # the antimeridian. For CMR, the polygons don't need to be that precice
+    # the antimeridian. For CMR, the polygons don't need to be that precise
     # and we're rounding to 179.999 anyway. So realistically we don't want any
     # polygons that are contained within the +/-0.001 degrees around the
     # antimeridian. Due to possible floating point errors in the distance
