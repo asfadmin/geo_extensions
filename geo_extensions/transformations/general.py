@@ -10,12 +10,20 @@ from geo_extensions.types import Transformation, TransformationResult
 
 
 def reverse_polygon(polygon: Polygon) -> TransformationResult:
-    """Perform a shapely reverse operation on the polygon."""
+    """Perform a shapely reverse operation on the polygon.
+
+    :param polygon: the input polygon
+    :return: a generator yielding the transformed polygon
+    """
     yield polygon.reverse()
 
 
 def drop_z_coordinate(polygon: Polygon) -> TransformationResult:
-    """Drop the third element from each coordinate in the polygon."""
+    """Drop the third element from each coordinate in the polygon.
+
+    :param polygon: the input polygon
+    :return: a generator yielding the transformed polygon
+    """
     yield Polygon(
         shell=((x, y) for x, y, *_ in polygon.exterior.coords),
         holes=[
@@ -30,10 +38,11 @@ def round_points(ndigits: SupportsIndex) -> Transformation:
     """Create a transformation that rounds polygon points to a given number of
     digits.
 
+    :param ndigits: number of digits to round to
     :returns: a callable transformation using the passed parameters
     """
 
-    def round_points_(polygon: Polygon) -> TransformationResult:
+    def round_points_transform(polygon: Polygon) -> TransformationResult:
         """Round the polygon's points."""
         yield Polygon(
             shell=(_round_coord(coord, ndigits) for coord in polygon.exterior.coords),
@@ -44,7 +53,7 @@ def round_points(ndigits: SupportsIndex) -> Transformation:
             ],
         )
 
-    return round_points_
+    return round_points_transform
 
 
 def _round_coord(

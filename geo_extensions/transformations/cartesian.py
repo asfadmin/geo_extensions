@@ -29,11 +29,14 @@ ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transformation:
     """CARTESIAN: Create a transformation that calls polygon.simplify.
 
+    :param tolerance: coordinates of the simplified geometry will be no more
+        than the tolerance distance from the original
+    :param preserve_topology: unless the topology preserving option is used, the
+        algorithm may produce self-intersecting or otherwise invalid geometries
     :returns: a callable transformation using the passed parameters
     """
 
-    def simplify(polygon: Polygon) -> TransformationResult:
-        """Perform a shapely simplify operation on the polygon."""
+    def simplify_polygon_transform(polygon: Polygon) -> TransformationResult:
         # NOTE(reweeden): I have been unable to produce a situation where a
         # polygon is simplified to a geometry other than Polygon.
         yield cast(
@@ -44,7 +47,7 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
             ),
         )
 
-    return simplify
+    return simplify_polygon_transform
 
 
 def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
@@ -87,7 +90,7 @@ def split_polygon_on_antimeridian_fixed_size(
     :returns: a callable transformation using the passed parameters
     """
 
-    def split(polygon: Polygon) -> TransformationResult:
+    def split_polygon_transform(polygon: Polygon) -> TransformationResult:
         if not polygon_crosses_antimeridian_fixed_size(polygon, min_lon_extent):
             yield polygon
             return
@@ -98,7 +101,7 @@ def split_polygon_on_antimeridian_fixed_size(
         for polygon in new_polygons:
             yield _shift_polygon_back(polygon)
 
-    return split
+    return split_polygon_transform
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
@@ -152,7 +155,7 @@ def _split_polygon(
 def _ignore_polygon(polygon: Polygon) -> bool:
     min_lon, _, max_lon, _ = polygon.bounds
     # We want to ignore any tiny slivers of polygons that might barely cross
-    # the antimeridian. For CMR, the polygons don't need to be that precice
+    # the antimeridian. For CMR, the polygons don't need to be that precise
     # and we're rounding to 179.999 anyway. So realistically we don't want any
     # polygons that are contained within the +/-0.001 degrees around the
     # antimeridian. Due to possible floating point errors in the distance
