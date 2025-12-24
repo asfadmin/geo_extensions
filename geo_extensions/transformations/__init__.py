@@ -39,13 +39,18 @@ from geo_extensions.transformations.cartesian import (
     split_polygon_on_antimeridian_ccw,
     split_polygon_on_antimeridian_fixed_size,
 )
-from geo_extensions.transformations.general import drop_z_coordinate, reverse_polygon
+from geo_extensions.transformations.general import (
+    drop_z_coordinate,
+    reverse_polygon,
+    round_points,
+)
 from geo_extensions.transformations.geodetic import densify_polygon
 
 __all__ = (
     "densify_polygon",
     "drop_z_coordinate",
     "reverse_polygon",
+    "round_points",
     "simplify_polygon",
     "split_polygon_on_antimeridian_ccw",
     "split_polygon_on_antimeridian_fixed_size",

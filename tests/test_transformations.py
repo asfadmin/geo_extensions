@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 from geo_extensions.transformations import (
     densify_polygon,
     drop_z_coordinate,
+    round_points,
     simplify_polygon,
     split_polygon_on_antimeridian_ccw,
     split_polygon_on_antimeridian_fixed_size,
@@ -231,6 +232,45 @@ def test_drop_z_coordinate_holes():
             holes=[
                 [(93, 8), (83, 8), (83, 2), (93, 8)],
                 [(97, 2), (97, 8), (87, 2), (97, 2)],
+            ],
+        ),
+    ]
+
+
+def test_round_polygon_points():
+    polygon = Polygon(
+        shell=[
+            (20.123456789, 0.123456789),
+            (20.123456789, 10.123456789),
+            (20.123456789, 10.123456789),
+            (20.123456789, 0.123456789),
+            (20.123456789, 0.123456789),
+        ],
+        holes=[
+            [
+                (18.123456789, 2.123456789),
+                (18.123456789, 8.123456789),
+                (18.123456789, 8.123456789),
+                (18.123456789, 2.123456789),
+            ],
+        ],
+    )
+    assert list(round_points(3)(polygon)) == [
+        Polygon(
+            shell=[
+                (20.123, 0.123),
+                (20.123, 10.123),
+                (20.123, 10.123),
+                (20.123, 0.123),
+                (20.123, 0.123),
+            ],
+            holes=[
+                [
+                    (18.123, 2.123),
+                    (18.123, 8.123),
+                    (18.123, 8.123),
+                    (18.123, 2.123),
+                ],
             ],
         ),
     ]
