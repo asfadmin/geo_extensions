@@ -42,7 +42,7 @@ def densify_polygon(tolerance_meters: float) -> Transformation:
     if tolerance_meters <= 0:
         raise ValueError("'tolerance_meters' must be greater than 0")
 
-    def densify(polygon: Polygon) -> TransformationResult:
+    def densify_polygon_transform(polygon: Polygon) -> TransformationResult:
         """Densify the polygon by adding additional points along the great
         circle arcs between the existing points.
         """
@@ -55,7 +55,7 @@ def densify_polygon(tolerance_meters: float) -> Transformation:
             ],
         )
 
-    return densify
+    return densify_polygon_transform
 
 
 def _densify_ring(

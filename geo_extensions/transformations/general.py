@@ -33,7 +33,7 @@ def round_points(ndigits: SupportsIndex) -> Transformation:
     :returns: a callable transformation using the passed parameters
     """
 
-    def round_points_(polygon: Polygon) -> TransformationResult:
+    def round_points_transform(polygon: Polygon) -> TransformationResult:
         """Round the polygon's points."""
         yield Polygon(
             shell=(_round_coord(coord, ndigits) for coord in polygon.exterior.coords),
@@ -44,7 +44,7 @@ def round_points(ndigits: SupportsIndex) -> Transformation:
             ],
         )
 
-    return round_points_
+    return round_points_transform
 
 
 def _round_coord(

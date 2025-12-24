@@ -32,7 +32,7 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
     :returns: a callable transformation using the passed parameters
     """
 
-    def simplify(polygon: Polygon) -> TransformationResult:
+    def simplify_polygon_transform(polygon: Polygon) -> TransformationResult:
         """Perform a shapely simplify operation on the polygon."""
         # NOTE(reweeden): I have been unable to produce a situation where a
         # polygon is simplified to a geometry other than Polygon.
@@ -44,7 +44,7 @@ def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transf
             ),
         )
 
-    return simplify
+    return simplify_polygon_transform
 
 
 def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
@@ -87,7 +87,7 @@ def split_polygon_on_antimeridian_fixed_size(
     :returns: a callable transformation using the passed parameters
     """
 
-    def split(polygon: Polygon) -> TransformationResult:
+    def split_polygon_transform(polygon: Polygon) -> TransformationResult:
         if not polygon_crosses_antimeridian_fixed_size(polygon, min_lon_extent):
             yield polygon
             return
@@ -98,7 +98,7 @@ def split_polygon_on_antimeridian_fixed_size(
         for polygon in new_polygons:
             yield _shift_polygon_back(polygon)
 
-    return split
+    return split_polygon_transform
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
