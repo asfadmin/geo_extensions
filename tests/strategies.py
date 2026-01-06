@@ -5,7 +5,6 @@ from hypothesis import strategies as st
 
 
 def assume_valid_polygon(polygon):
-    (minx, _, maxx, _) = polygon.bounds
     assume(polygon.area > 0.01)
     simplified = shapely.remove_repeated_points(polygon.simplify(0))
     assume(len(simplified.exterior.coords) > 4)

@@ -11,7 +11,7 @@ def data_path():
 
 @pytest.fixture
 def rectangle():
-    """A rectanglular polygon"""
+    """A rectangular polygon"""
     polygon = Polygon(
         [
             (160.0, 60.0),
@@ -29,7 +29,7 @@ def rectangle():
 
 @pytest.fixture
 def centered_rectangle():
-    """A rectanglular polygon centered at 0, 0"""
+    """A rectangular polygon centered at 0, 0"""
     polygon = Polygon(
         [
             (-30.0, 10.0),
@@ -47,7 +47,7 @@ def centered_rectangle():
 
 @pytest.fixture
 def antimeridian_centered_rectangle():
-    """A rectanglular polygon centered over the antimeridian"""
+    """A rectangular polygon centered over the antimeridian"""
     polygon = Polygon(
         [
             (150.0, 10.0),
@@ -66,7 +66,7 @@ def antimeridian_centered_rectangle():
 @pytest.fixture
 def multi_crossing_polygon():
     r"""A polygon that looks something like this, crossing back and forth
-    accross the IDL multiple times:
+    across the IDL multiple times:
         --------
         |      /
         |      \
