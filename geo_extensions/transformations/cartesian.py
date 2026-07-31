@@ -11,6 +11,7 @@ CMR+Data+Partner+User+Guide#CMRDataPartnerUserGuide-CartesianCoordinateSystem>
 This module contains helpers to fulfill the cartesian system CMR requirements.
 """
 
+import math
 from typing import cast
 
 import shapely.ops
@@ -22,8 +23,6 @@ from geo_extensions.checks import (
     polygon_crosses_antimeridian_fixed_size,
 )
 from geo_extensions.types import Transformation, TransformationResult
-
-ANTIMERIDIAN = LineString([(180, 90), (180, -90)])
 
 
 def simplify_polygon(tolerance: float, preserve_topology: bool = True) -> Transformation:
@@ -69,7 +68,7 @@ def split_polygon_on_antimeridian_ccw(polygon: Polygon) -> TransformationResult:
         return
 
     shifted_polygon = _shift_polygon(polygon)
-    new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
+    new_polygons = _split_polygon(shifted_polygon)
 
     for polygon in new_polygons:
         yield _shift_polygon_back(polygon)
@@ -96,7 +95,7 @@ def split_polygon_on_antimeridian_fixed_size(
             return
 
         shifted_polygon = _shift_polygon(polygon)
-        new_polygons = _split_polygon(shifted_polygon, ANTIMERIDIAN)
+        new_polygons = _split_polygon(shifted_polygon)
 
         for polygon in new_polygons:
             yield _shift_polygon_back(polygon)
@@ -105,13 +104,39 @@ def split_polygon_on_antimeridian_fixed_size(
 
 
 def _shift_polygon(polygon: Polygon) -> Polygon:
-    """Shift into [0, 360) range."""
+    """Shift longitudes so an antimeridian crossing becomes contiguous"""
+    if polygon.is_empty:
+        return polygon
 
+    coords = list(polygon.exterior.coords)
+
+    # Which "period" each coord is on around the earth. I.e crossing the
+    # antimeridian to the left will decrement the period for each coord after.
+    revolutions = [0]
+
+    prev_lon = coords[0][0]
+    for lon, _ in coords[1:]:
+        delta = lon - prev_lon
+        prev_revolution = revolutions[-1]
+        step = 0
+        if delta > 180:
+            step = -1
+        elif delta < -180:
+            step = 1
+        revolutions.append(prev_revolution + step)
+        prev_lon = lon
+
+    # Normalize the lowest point into [0, 360), so no revolution is negative
+    # and _split_polygon can count periods up from there.
+    min_lon = min(lon + 360 * rev for (lon, _), rev in zip(coords, revolutions))
+    revolutions = [int(rev - min_lon // 360) for rev in revolutions]
+
+    # rev=0 points come out untouched; the rest move forward whole periods.
     return Polygon(
         [
             # ruff hint
-            ((360.0 + lon) % 360, lat)
-            for lon, lat in polygon.exterior.coords
+            (lon + 360 * rev, lat)
+            for (lon, lat), rev in zip(coords, revolutions)
         ]
     )
 
@@ -119,36 +144,44 @@ def _shift_polygon(polygon: Polygon) -> Polygon:
 def _shift_polygon_back(polygon: Polygon) -> Polygon:
     """Shift back to [-180, 180] range."""
 
-    _, _, max_lon, _ = polygon.bounds
+    min_lon, _, _, _ = polygon.bounds
+    offset = (min_lon + 180) // 360 * 360
+
     return Polygon(
         [
             # ruff hint
-            (_adjust_lon(lon, max_lon), lat)
+            (lon - offset, lat)
             for lon, lat in polygon.exterior.coords
         ]
     )
 
 
-def _adjust_lon(lon: float, max_lon: float) -> float:
-    if lon > 180.0:
-        lon -= 360
-    elif lon == 180.0 and max_lon != 180.0:
-        lon = -180.0
+def _split_polygon(polygon: Polygon) -> list[Polygon]:
+    """Split on every antimeridian (180 + 360n) the polygon reaches across."""
 
-    return lon
+    min_lon, _, max_lon, _ = polygon.bounds
+    # Only antimeridians strictly inside the span can cut anything. A shape
+    # wrapping the globe several times crosses several of them.
+    first = int((min_lon - 180) // 360 + 1)
+    last = math.ceil((max_lon - 180) / 360)
 
-
-def _split_polygon(
-    polygon: Polygon,
-    line: LineString,
-) -> list[Polygon]:
-    split_collection = shapely.ops.split(polygon, line)
+    polygons = [polygon]
+    antimeridian_lons = (180 + 360 * n for n in range(first, last))
+    for lon in antimeridian_lons:
+        antimeridian = LineString([(lon, 90), (lon, -90)])
+        polygons = [
+            # ruff hint
+            geom
+            for poly in polygons
+            for geom in shapely.ops.split(poly, antimeridian).geoms
+            if isinstance(geom, Polygon)
+        ]
 
     return [
         # ruff hint
-        orient(geom)
-        for geom in split_collection.geoms
-        if isinstance(geom, Polygon) and not _ignore_polygon(geom)
+        orient(poly)
+        for poly in polygons
+        if not _ignore_polygon(poly)
     ]
 
 
