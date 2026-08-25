@@ -21,6 +21,8 @@ def polygon_crosses_antimeridian_ccw(polygon: Polygon) -> bool:
         clockwise order.
     :returns: true if the polygon crosses the antimeridian
     """
+    if polygon.is_empty:
+        return False
 
     # Polygons crossing the antimeridian will appear to be mis-ordered or
     # crossing themselves
@@ -40,6 +42,9 @@ def polygon_crosses_antimeridian_fixed_size(
         Must be between (0, 180) exclusive.
     :returns: true if the polygon crosses the antimeridian
     """
+    if polygon.is_empty:
+        return False
+
     assert 0 < min_lon_extent < 180
 
     min_lon, _, max_lon, _ = polygon.bounds

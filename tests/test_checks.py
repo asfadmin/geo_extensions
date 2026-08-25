@@ -6,6 +6,16 @@ from geo_extensions.checks import (
 )
 
 
+def test_polygon_crosses_antimeridian_ccw_empty():
+    polygon = Polygon([])
+    assert polygon_crosses_antimeridian_ccw(polygon) is False
+
+
+def test_polygon_crosses_antimeridian_fixed_size_empty():
+    polygon = Polygon([])
+    assert polygon_crosses_antimeridian_fixed_size(polygon, 20) is False
+
+
 def test_polygon_crosses_antimeridian_ccw_simple(centered_rectangle):
     assert polygon_crosses_antimeridian_ccw(centered_rectangle) is False
 
