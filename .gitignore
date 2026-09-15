@@ -3,6 +3,7 @@
 
 # Project
 poetry.lock
+.venv
 
 # Distribution
 *.egg-info
@@ -10,3 +11,6 @@ build
 
 # Testing
 .hypothesis
+
+# Developer
+.vscode
